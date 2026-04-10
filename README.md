@@ -64,7 +64,7 @@
 ### Inventory Management
 ![Inventory](screenshots/inventory.png)
 
-### Mobile Scanning UI
+### Available Laptops
 ![Mobile App](screenshots/mobile.png)
 
 ---
