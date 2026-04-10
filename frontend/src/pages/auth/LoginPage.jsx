@@ -142,7 +142,7 @@ export default function LoginPage() {
         <div style={{ width:'100%', maxWidth:400, animation:'fade-up .4s ease' }}>
           {/* Header */}
           <div style={{ marginBottom:32, textAlign:'center' }}>
-            <div style={{ fontSize:28, fontWeight:800, color:'#1c1c1e', letterSpacing:'-0.5px', marginTop:4 }}>LapTrac</div>
+            <div style={{ fontSize:28, fontWeight:800, color:'#1c1c1e', letterSpacing:'-0.5px', marginTop:4 }}>GearPilot</div>
             <div style={{ fontSize:10, color:'#dc2626', letterSpacing:'3px', textTransform:'uppercase', marginTop:4 }}>Laptop Tracking System</div>
           </div>
 

@@ -1,7 +1,7 @@
 {
-  "name": "laptop-wms-backend",
+  "name": "gear-pilot-backend",
   "version": "1.0.0",
-  "description": "Laptop Warehouse Management System - Backend",
+  "description": "GearPilot - Laptop Warehouse Management System - Backend",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

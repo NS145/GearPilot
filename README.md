@@ -1,4 +1,4 @@
-# 💻 Laptop Warehouse Management System (WMS)
+# 🛸 GearPilot — Laptop Warehouse Management System (WMS)
 
 A production-ready, full-stack inventory and assignment management system with QR integration and intelligent laptop allocation logic.
 
@@ -20,7 +20,7 @@ A production-ready, full-stack inventory and assignment management system with Q
 ## 📁 Folder Structure
 
 ```
-laptop-wms/
+gear-pilot/
 ├── backend/
 │   ├── config/         # DB connection
 │   ├── controllers/    # Request handlers
