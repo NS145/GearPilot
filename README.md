@@ -1,248 +1,128 @@
-# 🛸 GearPilot — Laptop Warehouse Management System (WMS)
+# 🛸 GearPilot — Next-Gen Laptop WMS
 
-A production-ready, full-stack inventory and assignment management system with QR integration and intelligent laptop allocation logic.
+[![Stack](https://img.shields.io/badge/Stack-Node.js%20%7C%20React%20%7C%20Expo-blueviolet?style=for-the-badge)](https://github.com/NS145/GearPilot)
+[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+[![Uptime](https://img.shields.io/badge/Status-Active-orange?style=for-the-badge)](https://github.com/NS145/GearPilot)
 
----
-
-## 🏗️ Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Backend | Node.js + Express.js + MongoDB (Mongoose) |
-| Frontend | React (Vite) + Tailwind CSS |
-| Mobile | React Native (Expo) |
-| Auth | JWT (JSON Web Tokens) |
-| Logging | Winston |
-| Validation | Joi |
+**GearPilot** is a production-grade, full-stack Warehouse Management System (WMS) specifically designed for laptop inventory and lifecycle management. It features a sophisticated assignment algorithm, QR integration for mobile devices, and a premium Glassmorphic UI.
 
 ---
 
-## 📁 Folder Structure
+## 🏗️ Architecture & Tech Stack
 
-```
+GearPilot is built on a high-performance **MERN** architecture with native mobile support.
+
+| Layer | Technology | Key Features |
+| :--- | :--- | :--- |
+| **Backend** | `Node.js` + `Express` | REST API, JWT Auth, Winston Logging |
+| **Database** | `MongoDB` + `Mongoose` | Transactions, Atomic Ops, Geo-indexing |
+| **Frontend** | `React` + `Vite` | Glassmorphism UI, Tailwind CSS, Framer Motion |
+| **Mobile** | `React Native` + `Expo` | QR Scanning, Real-time Tray Lookups |
+| **Security** | `Bcrypt` + `Joi` | Password Hashing, Schema Validation |
+
+---
+
+## 📁 Repository Structure
+
+```text
 gear-pilot/
-├── backend/
-│   ├── config/         # DB connection
-│   ├── controllers/    # Request handlers
-│   ├── middlewares/    # Auth, error handler
-│   ├── models/         # Mongoose schemas
-│   ├── routes/         # Express routes
-│   ├── services/       # Business logic (assignment)
-│   ├── utils/          # Logger, pagination, seed
-│   ├── validators/     # Joi schemas
-│   └── server.js
-├── frontend/
-│   └── src/
-│       ├── api/        # Axios + service calls
-│       ├── components/ # Shared UI components
-│       ├── context/    # Auth context
-│       └── pages/      # Admin + Service + Auth pages
-└── mobile/
-    └── src/
-        ├── api/        # API client
-        ├── context/    # Auth context
-        └── screens/    # Login, Dashboard, QR, Tray, etc.
+├── 🚀 backend/         # Node.js API server & business logic
+├── 💻 frontend/        # React web dashboard for admins & service
+└── 📱 mobile/          # Expo app for warehouse staff (QR integration)
 ```
 
 ---
 
-## 🚀 Setup Instructions
+## 🚀 Quick Start Guide
 
-### Prerequisites
-- Node.js >= 18
-- MongoDB >= 5 (local or Atlas)
-- Expo CLI (`npm install -g expo-cli`)
+Follow these steps to get GearPilot running locally in under 5 minutes.
 
-### 1. Backend
-
-```bash
-cd backend
-cp .env.example .env
-# Edit .env: set MONGODB_URI and JWT_SECRET
-
-npm install
-npm run seed    # Seed demo data
-npm run dev     # Start dev server (port 5000)
-```
-
-### 2. Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev     # Runs on http://localhost:5173
-```
-
-### 3. Mobile App
-
-```bash
-cd mobile
-npm install
-# In src/api/client.js, update BASE_URL to your local IP
-# e.g., http://192.168.1.x:5000/api
-
-npx expo start
-# Scan QR with Expo Go app
-```
+### 📋 Prerequisites
+- **Node.js** (v18 or higher)
+- **MongoDB** (Local instance or Atlas connection string)
+- **Expo Go** app (installed on your physical mobile device)
 
 ---
 
-## 🔑 Demo Credentials
+### Step 1: Clone the Repository
+```bash
+git clone https://github.com/NS145/GearPilot.git
+cd GearPilot
+```
 
+### Step 2: Backend Setup
+1. Navigate to the backend folder:
+   ```bash
+   cd backend
+   ```
+2. Create environment file:
+   ```bash
+   cp .env.example .env
+   ```
+   *Edit `.env` and set your `MONGODB_URI` and `JWT_SECRET`.*
+3. Install and run:
+   ```bash
+   npm install
+   npm run seed    # Optional: Populates demo data
+   npm run dev     # Server starts on http://localhost:5000
+   ```
+
+### Step 3: Frontend Web Dashboard
+1. Open a new terminal and navigate to:
+   ```bash
+   cd frontend
+   ```
+2. Install and run:
+   ```bash
+   npm install
+   npm run dev     # Dashboard runs on http://localhost:5173
+   ```
+
+### Step 4: Mobile App
+1. Open a new terminal and navigate to:
+   ```bash
+   cd mobile
+   ```
+2. Install and start:
+   ```bash
+   npm install
+   npx expo start
+   ```
+   *Note: Ensure your mobile and PC are on the same Wi-Fi. Update the `BASE_URL` in `src/api/client.js` to your computer's local IP.*
+
+---
+
+## 🔑 Demo Access
 | Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@wms.com | Admin@123 |
-| Service | service@wms.com | Service@123 |
+| :--- | :--- | :--- |
+| **Administrator** | `admin@wms.com` | `Admin@123` |
+| **Service Staff** | `service@wms.com` | `Service@123` |
 
 ---
 
-## 🧠 Assignment Algorithm
+## 🧠 Smart Assignment Logic
+GearPilot uses a two-tier priority bridge to ensure laptop health and optimal rotation.
 
-The core business logic lives in `backend/services/assignmentService.js`.
+1. **Priority 1 (Recent Rotation)**: Always assigns the laptop that was returned most recently to ensure equal wear across the fleet.
+2. **Priority 2 (FIFO)**: If no laptops have rotation history, it defaults to the oldest purchase date.
 
-### Priority Rules:
-1. **Priority 1 — Most Recently Returned**: Assign the laptop with the highest `lastReturnedDate` (most recently returned)
-2. **Priority 2 — Oldest Purchase Date**: If no laptops have ever been returned, assign the one with the oldest `purchaseDate`
-
-### Atomicity & Race Condition Prevention:
-- Uses **MongoDB Transactions** (`session.startTransaction()`)
-- `findOneAndUpdate` is atomic — atomically finds AND marks the laptop as assigned in one operation
-- Prevents two simultaneous requests from assigning the same laptop
-- Transaction is rolled back on any error
-
-```javascript
-// Priority 1: Most recently returned
-laptop = await Laptop.findOneAndUpdate(
-  { status: 'available', lastReturnedDate: { $ne: null } },
-  { $set: { status: 'assigned' } },
-  { sort: { lastReturnedDate: -1 }, new: true, session }
-);
-
-// Priority 2: Oldest purchase date
-if (!laptop) {
-  laptop = await Laptop.findOneAndUpdate(
-    { status: 'available' },
-    { $set: { status: 'assigned' } },
-    { sort: { purchaseDate: 1 }, new: true, session }
-  );
-}
-```
+> [!IMPORTANT]
+> All assignment operations use **MongoDB Transactions** to prevent race conditions during simultaneous requests.
 
 ---
 
-## 📡 API Reference
-
-### Auth
-| Method | Endpoint | Access |
-|--------|----------|--------|
-| POST | /api/auth/login | Public |
-| POST | /api/auth/register | Public |
-| GET | /api/auth/me | Protected |
-
-### Rack
-| Method | Endpoint | Role |
-|--------|----------|------|
-| GET | /api/rack | All |
-| POST | /api/rack | Admin |
-| PUT | /api/rack/:id | Admin |
-| DELETE | /api/rack/:id | Admin |
-
-### Tray
-| Method | Endpoint | Role |
-|--------|----------|------|
-| GET | /api/tray | All |
-| GET | /api/tray/by-qr/:code | All |
-| POST | /api/tray | Admin |
-| PUT | /api/tray/:id | Admin/Service |
-
-### Laptop
-| Method | Endpoint | Role |
-|--------|----------|------|
-| GET | /api/laptop | All |
-| GET | /api/laptop/dashboard | All |
-| POST | /api/laptop | Admin/Service |
-| PUT | /api/laptop/:id | Admin/Service |
-| DELETE | /api/laptop/:id | Admin |
-
-### Assignment
-| Method | Endpoint | Role |
-|--------|----------|------|
-| GET | /api/assignment | All |
-| POST | /api/assignment/assign | Admin/Service |
-| POST | /api/assignment/return | Admin/Service |
-
-### Employee
-| Method | Endpoint | Role |
-|--------|----------|------|
-| GET | /api/employee | All |
-| POST | /api/employee | Admin |
-| PUT | /api/employee/:id | Admin |
-| DELETE | /api/employee/:id | Admin |
+## 📡 Key API Features
+- **Auto-Allocation**: Atomic `POST /api/assignment/assign` endpoint.
+- **QR Tray Lookup**: Instant data retrieval via `GET /api/tray/by-qr/:code`.
+- **RBAC**: Middleware-enforced Role Based Access Control for Sensitive Ops.
 
 ---
 
-## 🗂️ Database Design
-
-### Indexes
-
-```javascript
-// Laptop — critical for assignment algorithm
-{ status: 1, lastReturnedDate: -1 }  // Priority 1 sort
-{ status: 1, purchaseDate: 1 }        // Priority 2 sort
-
-// Tray
-{ qrCode: 1 }   // QR lookups
-{ rackId: 1 }   // Filter by rack
-
-// Assignment
-{ laptopId: 1, status: 1 }
-{ employeeId: 1, status: 1 }
-```
+## 🛠️ Future Roadmap
+- [ ] **Predictive Maintenance**: AI-driven alerts for battery cycle thresholds.
+- [ ] **Bulk Import**: CSV/Excel processing for fleet onboarding.
+- [ ] **PDF Engine**: Instant QR code label generation for hardware tagging.
 
 ---
 
-## 📈 Scalability Suggestions
-
-1. **Redis Caching**: Cache tray/rack list endpoints. Invalidate on mutation.
-2. **Horizontal Scaling**: The stateless JWT auth allows running multiple backend instances behind a load balancer.
-3. **MongoDB Atlas**: Move to Atlas for automatic scaling + backups.
-4. **Message Queue**: For high concurrency assignment requests, use a Redis-based queue (Bull) to serialize assignment operations.
-5. **CDN for Mobile**: Host API behind a CDN for global latency reduction.
-
----
-
-## 🚀 Future Enhancements
-
-1. **Analytics Dashboard**: Charts for assignment frequency, model popularity, average usage duration
-2. **Audit Logs**: Immutable audit trail with IP, user agent, diff tracking
-3. **Email Notifications**: Notify employees on assignment/return via SendGrid
-4. **Bulk Operations**: CSV upload for bulk laptop/employee import
-5. **Barcode Generation**: Generate and print QR codes as PDF labels for trays
-6. **Role Expansion**: Add `manager` role with approval workflow for assignments
-7. **Warranty Tracking**: Track laptop warranty expiry and send alerts
-8. **HR Integration**: Webhook listener for HR systems to auto-create employees
-
----
-
-## 🔒 Security Features
-
-- JWT authentication with expiry
-- Bcrypt password hashing (12 rounds)
-- Role-based access control middleware
-- Input validation via Joi
-- Rate limiting (200 req / 15 min)
-- Soft deletes (no hard data removal)
-- Centralized error handling (no stack traces in production)
-
----
-
-## 📱 Mobile QR Flow
-
-1. Open mobile app → Login
-2. Tap **Scan QR** → Camera opens
-3. Point at tray QR code label
-4. App calls `GET /api/tray/by-qr/:code`
-5. Tray Details screen shows:
-   - Rack + tray info
-   - Laptop inside (if any) with status
-   - Actions: Add laptop OR Assign to employee
+Built with ❤️ by [NS145](https://github.com/NS145)
