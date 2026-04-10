@@ -1,0 +1,30 @@
+name: GearPilot CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-index: 18.x
+      - run: cd server && npm install
+      - run: cd server && npm run test --if-present
+
+  build-client:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-index: 18.x
+      - run: cd client && npm install
+      - run: cd client && npm run build

@@ -5,12 +5,15 @@ import { laptopAPI, rackAPI, trayAPI, employeeAPI } from '../../api';
 import { format } from 'date-fns';
 import { SlidersHorizontal, Server, Grid, Laptop, ClipboardCheck } from 'lucide-react';
 
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+
 export default function AdminDashboard() {
   const [rows, setRows]           = useState([]);
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading]     = useState(true);
   const [filters, setFilters]     = useState({ status:'', model:'', rackNumber:'', trayNumber:'', page:1 });
   const [stats, setStats]         = useState({ racks:0, trays:0, laptops:0, employees:0 });
+  const [dist, setDist]           = useState([]);
 
   const fetchDashboard = useCallback(async () => {
     setLoading(true);
@@ -20,6 +23,17 @@ export default function AdminDashboard() {
       const { data } = await laptopAPI.getDashboard(params);
       setRows(data.data);
       setPagination(data.pagination);
+      
+      // Calculate distribution for chart
+      const counts = data.data.reduce((acc, r) => {
+        acc[r.status] = (acc[r.status] || 0) + 1;
+        return acc;
+      }, { available: 0, assigned: 0, maintenance: 0 });
+      setDist([
+        { name: 'Available', value: counts.available, color: '#10b981' },
+        { name: 'Assigned', value: counts.assigned, color: '#3b82f6' },
+        { name: 'Maintenance', value: counts.maintenance, color: '#f59e0b' },
+      ]);
     } finally { setLoading(false); }
   }, [filters]);
 
@@ -44,20 +58,44 @@ export default function AdminDashboard() {
 
   return (
     <Layout title="Dashboard">
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {statCards.map(({ label, value, color, glow, Icon }) => (
-          <div key={label} className="card card-hover relative overflow-hidden p-5">
-            <div className="absolute top-0 right-0 w-24 h-24 pointer-events-none" style={{ background:`radial-gradient(circle at top right, ${glow}, transparent)` }}/>
-            <div className="flex items-center gap-3 mb-3">
-              <div className="flex items-center justify-center rounded-xl" style={{ width:36,height:36,background:glow,border:`1px solid ${color}30`,color }}>
-                <Icon className="w-4 h-4"/>
+      {/* Stats & Analytics */}
+      <div className="flex flex-col lg:flex-row gap-4 mb-6">
+        <div className="grid grid-cols-2 gap-4 flex-1">
+          {statCards.map(({ label, value, color, glow, Icon }) => (
+            <div key={label} className="card card-hover relative overflow-hidden p-5 flex flex-col justify-center">
+              <div className="absolute top-0 right-0 w-24 h-24 pointer-events-none" style={{ background:`radial-gradient(circle at top right, ${glow}, transparent)` }}/>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center justify-center rounded-xl" style={{ width:36,height:36,background:glow,border:`1px solid ${color}30`,color }}>
+                  <Icon className="w-4 h-4"/>
+                </div>
+                <span style={{ fontSize:10, color:'#475569', textTransform:'uppercase', letterSpacing:'1px', fontWeight:600 }}>{label}</span>
               </div>
-              <span style={{ fontSize:10, color:'#475569', textTransform:'uppercase', letterSpacing:'1px', fontWeight:600 }}>{label}</span>
+              <div style={{ fontSize:32, fontWeight:800, color:'#1c1c1e', lineHeight:1 }}>{value}</div>
             </div>
-            <div style={{ fontSize:36, fontWeight:800, color:'#1c1c1e', lineHeight:1 }}>{value}</div>
+          ))}
+        </div>
+        
+        <div className="card p-5 lg:w-80 flex flex-col">
+          <span className="mb-4" style={{ fontSize:10, color:'#475569', textTransform:'uppercase', letterSpacing:'1px', fontWeight:600 }}>Fleet Health Distribution</span>
+          <div className="h-40 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={dist} innerRadius={35} outerRadius={50} paddingAngle={5} dataKey="value">
+                  {dist.map((entry, index) => <Cell key={index} fill={entry.color} />)}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
-        ))}
+          <div className="flex justify-between mt-2 px-2">
+            {dist.map(d => (
+              <div key={d.name} className="flex flex-col items-center">
+                <span style={{ fontSize:16, fontWeight:700, color:d.color }}>{d.value}</span>
+                <span style={{ fontSize:8, textTransform:'uppercase', color:'#64748b' }}>{d.name.slice(0,4)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Filters */}

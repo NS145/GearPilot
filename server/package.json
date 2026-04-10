@@ -1,5 +1,5 @@
 {
-  "name": "gear-pilot-backend",
+  "name": "gear-pilot-server",
   "version": "1.0.0",
   "description": "GearPilot - Laptop Warehouse Management System - Backend",
   "main": "server.js",
