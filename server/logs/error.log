@@ -42,3 +42,8 @@
 {"level":"error","message":"Employee already has an assigned laptop - POST /api/assignment/assign","timestamp":"2026-03-25T15:06:42.947Z"}
 {"level":"error","message":"Employee already has an assigned laptop - POST /api/assignment/assign","timestamp":"2026-03-25T15:16:56.233Z"}
 {"level":"error","message":"Invalid credentials - POST /api/auth/login","timestamp":"2026-04-13T17:09:49.758Z"}
+{"level":"error","message":"Invalid credentials - POST /api/auth/login","timestamp":"2026-04-13T17:21:36.277Z"}
+{"level":"error","message":"Invalid credentials - POST /api/auth/login","timestamp":"2026-04-13T17:21:39.593Z"}
+{"level":"error","message":"Invalid credentials - POST /api/auth/login","timestamp":"2026-04-13T17:21:52.104Z"}
+{"level":"error","message":"Invalid credentials - POST /api/auth/login","timestamp":"2026-04-13T17:22:17.651Z"}
+{"level":"error","message":"Invalid credentials - POST /api/auth/login","timestamp":"2026-04-13T17:22:30.671Z"}

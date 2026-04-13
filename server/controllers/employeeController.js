@@ -6,6 +6,24 @@ const { getPagination, paginateResponse } = require('../utils/pagination');
 exports.createEmployee = async (req, res, next) => {
   try {
     const employee = await Employee.create(req.body);
+    
+    // Create corresponding user account automatically
+    const User = require('../models/User');
+    const existingUser = await User.findOne({ email: employee.email });
+    if (!existingUser) {
+      const initPassword = req.body.plainPassword || (employee.name.replace(/\s+/g, '').toLowerCase() + '@laptopwms');
+      await User.create({
+        name: employee.name,
+        email: employee.email,
+        password: initPassword,
+        role: 'employee'
+      });
+      if (!req.body.plainPassword) {
+        employee.plainPassword = initPassword;
+        await employee.save();
+      }
+    }
+
     logActivity({ userId: req.user._id, action: 'CREATE_EMPLOYEE', entity: 'Employee', entityId: employee._id, ip: req.ip });
     res.status(201).json({ success: true, data: employee });
   } catch (err) { next(err); }
@@ -54,6 +72,13 @@ exports.updateEmployee = async (req, res, next) => {
       if (employeeUser) {
         employeeUser.password = req.body.plainPassword;
         await employeeUser.save();
+      } else {
+        await User.create({ 
+          name: employee.name, 
+          email: employee.email, 
+          password: req.body.plainPassword, 
+          role: 'employee' 
+        });
       }
     }
 

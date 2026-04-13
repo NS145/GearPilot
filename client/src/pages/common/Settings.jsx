@@ -11,16 +11,14 @@ export default function Settings() {
   // States
   const [profilePhoto, setProfilePhoto] = useState(user?.avatarUrl || '');
   const [name, setName] = useState(user?.name || '');
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const [notifications, setNotifications] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    // Basic dark mode toggler across the app based on document class
-    if (theme === 'dark') document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+    // Force remove dark mode
+    document.documentElement.classList.remove('dark');
+    localStorage.removeItem('theme');
+  }, []);
 
   const handlePhotoUpload = (e) => {
     const file = e.target.files?.[0];
@@ -113,17 +111,7 @@ export default function Settings() {
           </div>
 
           <form onSubmit={handleSavePreferences} className="space-y-6">
-            <div>
-              <label className="text-sm font-medium mb-3 block">Theme Mode</label>
-              <div className="flex items-center gap-3">
-                <button type="button" onClick={() => setTheme('light')} className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${theme === 'light' ? 'bg-red-50 border-red-200 text-red-700 font-medium' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
-                  <Sun className="w-4 h-4" /> Light
-                </button>
-                <button type="button" onClick={() => setTheme('dark')} className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${theme === 'dark' ? 'bg-gray-800 border-gray-700 text-white font-medium' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
-                  <Moon className="w-4 h-4" /> Dark
-                </button>
-              </div>
-            </div>
+
 
             <div>
               <label className="text-sm font-medium mb-3 block flex items-center gap-2"><Bell className="w-4 h-4 text-gray-400" /> Notifications</label>
