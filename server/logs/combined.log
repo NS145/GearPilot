@@ -2541,3 +2541,8 @@
 {"level":"info","message":"::1 - - [13/Apr/2026:17:23:29 +0000] \"GET /api/laptop?limit=1 HTTP/1.1\" 304 - \"http://localhost:5173/admin\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36\"","timestamp":"2026-04-13T17:23:29.151Z"}
 {"level":"info","message":"Server running on port 5000","timestamp":"2026-04-13T17:23:56.028Z"}
 {"level":"info","message":"MongoDB connected: localhost","timestamp":"2026-04-13T17:23:56.049Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-04-13T17:23:57.396Z"}
+{"level":"info","message":"MongoDB connected: localhost","timestamp":"2026-04-13T17:23:57.413Z"}
+{"level":"info","message":"::1 - - [13/Apr/2026:17:24:00 +0000] \"GET /api/tickets?limit=1&status=open HTTP/1.1\" 304 - \"http://localhost:5173/admin\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36\"","timestamp":"2026-04-13T17:24:00.085Z"}
+{"level":"error","message":"Invalid credentials - POST /api/auth/login","timestamp":"2026-04-13T17:24:07.942Z"}
+{"level":"info","message":"::1 - - [13/Apr/2026:17:24:07 +0000] \"POST /api/auth/login HTTP/1.1\" 401 49 \"http://localhost:5173/login\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36\"","timestamp":"2026-04-13T17:24:07.943Z"}
