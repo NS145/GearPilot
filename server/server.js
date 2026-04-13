@@ -16,6 +16,7 @@ const assignmentRoutes = require('./routes/assignment');
 const employeeRoutes = require('./routes/employee');
 const qrRoutes = require('./routes/qr');
 const activityRoutes = require('./routes/activity');
+const ticketRoutes = require('./routes/ticket');
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use('/api/assignment', assignmentRoutes);
 app.use('/api/employee', employeeRoutes);
 app.use('/api/qr', qrRoutes);
 app.use('/api/activity', activityRoutes);
+app.use('/api/tickets', ticketRoutes);
 
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));

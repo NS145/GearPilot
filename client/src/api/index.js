@@ -57,3 +57,11 @@ export const employeeAPI = {
 export const activityAPI = {
   getAll: (params) => api.get('/activity', { params })
 };
+
+// Tickets
+export const ticketAPI = {
+  getAll: (params) => api.get('/tickets', { params }),
+  getMyTickets: (params) => api.get('/tickets/my-tickets', { params }),
+  create: (data) => api.post('/tickets', data),
+  respond: (id, data) => api.put(`/tickets/${id}/respond`, data)
+};

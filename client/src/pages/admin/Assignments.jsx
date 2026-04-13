@@ -45,6 +45,9 @@ export default function AdminAssignments() {
       setAssignModal(false);
       setAssignForm({ employeeId: '', notes: '' });
       fetchAssignments();
+      if (data.employeeCredentials) {
+        alert(`New employee credentials generated!\nEmail: ${data.employeeCredentials.email}\nPassword: ${data.employeeCredentials.password}\nPlease share these with the employee.`);
+      }
     } finally { setSaving(false); }
   };
 

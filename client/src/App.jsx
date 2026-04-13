@@ -16,17 +16,25 @@ import ServiceDashboard from './pages/service/Dashboard';
 import ServiceTrays from './pages/service/Trays';
 import ServiceAssign from './pages/service/Assign';
 
-const ProtectedRoute = ({ children, adminOnly = false }) => {
+import EmployeeDashboard from './pages/employee/Dashboard';
+import AdminTickets from './pages/admin/Tickets';
+
+const ProtectedRoute = ({ children, roleRequired }) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   if (!user) return <Navigate to="/login" />;
-  if (adminOnly && user.role !== 'admin') return <Navigate to="/service" />;
+  if (roleRequired && user.role !== roleRequired) {
+    if (user.role === 'admin') return <Navigate to="/admin" />;
+    if (user.role === 'employee') return <Navigate to="/employee" />;
+    return <Navigate to="/service" />;
+  }
   return children;
 };
 
 const RoleRedirect = () => {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" />;
+  if (user.role === 'employee') return <Navigate to="/employee" />;
   return <Navigate to={user.role === 'admin' ? '/admin' : '/service'} />;
 };
 
@@ -40,18 +48,22 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
 
           {/* Admin routes */}
-          <Route path="/admin" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
-          <Route path="/admin/racks" element={<ProtectedRoute adminOnly><AdminRacks /></ProtectedRoute>} />
-          <Route path="/admin/trays" element={<ProtectedRoute adminOnly><AdminTrays /></ProtectedRoute>} />
-          <Route path="/admin/laptops" element={<ProtectedRoute adminOnly><AdminLaptops /></ProtectedRoute>} />
-          <Route path="/admin/assignments" element={<ProtectedRoute adminOnly><AdminAssignments /></ProtectedRoute>} />
-          <Route path="/admin/employees" element={<ProtectedRoute adminOnly><AdminEmployees /></ProtectedRoute>} />
-          <Route path="/admin/activity" element={<ProtectedRoute adminOnly><AdminActivity /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute roleRequired="admin"><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/racks" element={<ProtectedRoute roleRequired="admin"><AdminRacks /></ProtectedRoute>} />
+          <Route path="/admin/trays" element={<ProtectedRoute roleRequired="admin"><AdminTrays /></ProtectedRoute>} />
+          <Route path="/admin/laptops" element={<ProtectedRoute roleRequired="admin"><AdminLaptops /></ProtectedRoute>} />
+          <Route path="/admin/assignments" element={<ProtectedRoute roleRequired="admin"><AdminAssignments /></ProtectedRoute>} />
+          <Route path="/admin/employees" element={<ProtectedRoute roleRequired="admin"><AdminEmployees /></ProtectedRoute>} />
+          <Route path="/admin/activity" element={<ProtectedRoute roleRequired="admin"><AdminActivity /></ProtectedRoute>} />
+          <Route path="/admin/tickets" element={<ProtectedRoute roleRequired="admin"><AdminTickets /></ProtectedRoute>} />
 
           {/* Service routes */}
-          <Route path="/service" element={<ProtectedRoute><ServiceDashboard /></ProtectedRoute>} />
-          <Route path="/service/trays" element={<ProtectedRoute><ServiceTrays /></ProtectedRoute>} />
-          <Route path="/service/assign" element={<ProtectedRoute><ServiceAssign /></ProtectedRoute>} />
+          <Route path="/service" element={<ProtectedRoute roleRequired="service"><ServiceDashboard /></ProtectedRoute>} />
+          <Route path="/service/trays" element={<ProtectedRoute roleRequired="service"><ServiceTrays /></ProtectedRoute>} />
+          <Route path="/service/assign" element={<ProtectedRoute roleRequired="service"><ServiceAssign /></ProtectedRoute>} />
+
+          {/* Employee routes */}
+          <Route path="/employee" element={<ProtectedRoute roleRequired="employee"><EmployeeDashboard /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

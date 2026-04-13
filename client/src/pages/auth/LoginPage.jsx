@@ -79,7 +79,9 @@ export default function LoginPage() {
     try {
       const user = await login(form.email, form.password);
       toast.success('Welcome back!');
-      navigate(user.role === 'admin' ? '/admin' : '/service');
+      if (user.role === 'admin') navigate('/admin');
+      else if (user.role === 'employee') navigate('/employee');
+      else navigate('/service');
     } catch { /* handled by interceptor */ } finally { setLoading(false); }
   };
 

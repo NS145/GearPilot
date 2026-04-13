@@ -61,6 +61,20 @@ const assignLaptopToEmployee = async ({ employeeId, assignedBy, notes, ip }) => 
       status: 'active'
     }]);
 
+    const User = require('../models/User'); // require here to avoid circular dep if any
+    let employeeUser = await User.findOne({ email: employee.email });
+    let employeeCredentials = null;
+    if (!employeeUser) {
+      const generatedPassword = Math.random().toString(36).slice(-8) + 'E1!';
+      employeeUser = await User.create({
+        name: employee.name,
+        email: employee.email,
+        password: generatedPassword,
+        role: 'employee'
+      });
+      employeeCredentials = { email: employee.email, password: generatedPassword };
+    }
+
     // Log activity (non-blocking)
     logActivity({
       userId: assignedBy,
@@ -81,7 +95,8 @@ const assignLaptopToEmployee = async ({ employeeId, assignedBy, notes, ip }) => 
     return {
       assignment: assignment[0],
       laptop,
-      employee
+      employee,
+      employeeCredentials
     };
   } catch (err) {
     throw err;

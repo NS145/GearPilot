@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { LayoutDashboard, Server, Grid, Monitor, Users, ClipboardList, Activity, LogOut, Menu, Bell, ChevronRight, Laptop } from 'lucide-react';
+import { LayoutDashboard, Server, Grid, Monitor, Users, ClipboardList, Activity, LogOut, Menu, Bell, ChevronRight, Laptop, Ticket } from 'lucide-react';
 
 const adminNav = [
   { path:'/admin',             label:'Dashboard',   Icon:LayoutDashboard },
@@ -11,11 +11,15 @@ const adminNav = [
   { path:'/admin/employees',   label:'Employees',    Icon:Users },
   { path:'/admin/assignments', label:'Assignments',  Icon:ClipboardList },
   { path:'/admin/activity',    label:'Activity Log', Icon:Activity },
+  { path:'/admin/tickets',     label:'Tickets',      Icon:Ticket },
 ];
 const serviceNav = [
   { path:'/service',            label:'Dashboard',   Icon:LayoutDashboard },
   { path:'/service/trays',      label:'Tray View',   Icon:Grid },
   { path:'/service/assign',     label:'Assign',      Icon:ClipboardList },
+];
+const employeeNav = [
+  { path:'/employee',           label:'Dashboard',   Icon:LayoutDashboard },
 ];
 
 export default function Layout({ children, title }) {
@@ -23,7 +27,7 @@ export default function Layout({ children, title }) {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   const navigate  = useNavigate();
-  const nav = isAdmin ? adminNav : serviceNav;
+  const nav = user?.role === 'employee' ? employeeNav : (isAdmin ? adminNav : serviceNav);
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
