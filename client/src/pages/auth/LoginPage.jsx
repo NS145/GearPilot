@@ -64,13 +64,32 @@ export default function LoginPage() {
   const [role, setRole] = useState('admin');
   const [form, setForm] = useState({ email:'admin@wms.com', password:'Admin@123' });
   const [loading, setLoading] = useState(false);
+  const [reqLoading, setReqLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  const handleForgotPassword = async () => {
+    if (!form.email) {
+      toast.error('Please enter your email to request a reset');
+      return;
+    }
+    setReqLoading(true);
+    try {
+      const { ticketAPI } = await import('../../api');
+      const { data } = await ticketAPI.requestReset(form.email);
+      toast.success(data.message || 'Reset requested');
+    } catch {
+      // toast err handled by interceptor ideally
+    } finally {
+      setReqLoading(false);
+    }
+  };
 
   const handleRoleChange = (selectedRole) => {
     setRole(selectedRole);
     if (selectedRole === 'admin') setForm({ email:'admin@wms.com', password:'Admin@123' });
-    else setForm({ email:'service@wms.com', password:'Service@123' });
+    else if (selectedRole === 'service') setForm({ email:'service@wms.com', password:'Service@123' });
+    else setForm({ email:'', password:'' });
   };
 
   const handleSubmit = async (e) => {
@@ -155,21 +174,29 @@ export default function LoginPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Role Radio Group */}
-              <div className="flex gap-3 mb-2">
-                <label className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${role === 'admin' ? 'border-red-500 bg-red-50/50' : 'border-gray-100 bg-gray-50/50 hover:bg-gray-100'}`}>
+              <div className="flex gap-2 mb-4">
+                <label className={`flex-1 flex items-center justify-center gap-1.5 p-2 rounded-xl border-2 cursor-pointer transition-all ${role === 'admin' ? 'border-red-500 bg-red-50/50' : 'border-gray-100 bg-gray-50/50 hover:bg-gray-100'}`}>
                   <input type="radio" name="role" value="admin" checked={role === 'admin'} onChange={() => handleRoleChange('admin')} className="hidden" />
-                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${role === 'admin' ? 'border-red-500' : 'border-gray-300'}`}>
-                    {role === 'admin' && <div className="w-2 h-2 rounded-full bg-red-500" />}
+                  <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${role === 'admin' ? 'border-red-500' : 'border-gray-300'}`}>
+                    {role === 'admin' && <div className="w-1.5 h-1.5 rounded-full bg-red-500" />}
                   </div>
-                  <span className={`text-sm font-bold ${role === 'admin' ? 'text-red-700' : 'text-gray-500'}`}>Admin</span>
+                  <span className={`text-xs font-bold ${role === 'admin' ? 'text-red-700' : 'text-gray-500'}`}>Admin</span>
                 </label>
 
-                <label className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${role === 'service' ? 'border-red-500 bg-red-50/50' : 'border-gray-100 bg-gray-50/50 hover:bg-gray-100'}`}>
+                <label className={`flex-1 flex items-center justify-center gap-1.5 p-2 rounded-xl border-2 cursor-pointer transition-all ${role === 'service' ? 'border-red-500 bg-red-50/50' : 'border-gray-100 bg-gray-50/50 hover:bg-gray-100'}`}>
                   <input type="radio" name="role" value="service" checked={role === 'service'} onChange={() => handleRoleChange('service')} className="hidden" />
-                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${role === 'service' ? 'border-red-500' : 'border-gray-300'}`}>
-                    {role === 'service' && <div className="w-2 h-2 rounded-full bg-red-500" />}
+                  <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${role === 'service' ? 'border-red-500' : 'border-gray-300'}`}>
+                    {role === 'service' && <div className="w-1.5 h-1.5 rounded-full bg-red-500" />}
                   </div>
-                  <span className={`text-sm font-bold ${role === 'service' ? 'text-red-700' : 'text-gray-500'}`}>Service</span>
+                  <span className={`text-xs font-bold ${role === 'service' ? 'text-red-700' : 'text-gray-500'}`}>Service</span>
+                </label>
+                
+                <label className={`flex-1 flex items-center justify-center gap-1.5 p-2 rounded-xl border-2 cursor-pointer transition-all ${role === 'employee' ? 'border-red-500 bg-red-50/50' : 'border-gray-100 bg-gray-50/50 hover:bg-gray-100'}`}>
+                  <input type="radio" name="role" value="employee" checked={role === 'employee'} onChange={() => handleRoleChange('employee')} className="hidden" />
+                  <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${role === 'employee' ? 'border-red-500' : 'border-gray-300'}`}>
+                    {role === 'employee' && <div className="w-1.5 h-1.5 rounded-full bg-red-500" />}
+                  </div>
+                  <span className={`text-xs font-bold ${role === 'employee' ? 'text-red-700' : 'text-gray-500'}`}>Employee</span>
                 </label>
               </div>
 
@@ -184,6 +211,14 @@ export default function LoginPage() {
               <button type="submit" className="btn-primary w-full py-3.5 mt-2" disabled={loading}>
                 {loading ? <><Loader2 className="w-4 h-4 animate-spin"/> Authenticating...</> : 'Sign In →'}
               </button>
+              
+              {role === 'employee' && (
+                <div className="text-center mt-4">
+                  <button type="button" onClick={handleForgotPassword} disabled={reqLoading} className="text-xs text-red-600 hover:text-red-700 font-semibold transition-colors">
+                    {reqLoading ? 'Requesting...' : 'Forgot/Change Password?'}
+                  </button>
+                </div>
+              )}
             </form>
           </div>
         </div>

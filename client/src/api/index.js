@@ -4,7 +4,8 @@ import api from './axios';
 export const authAPI = {
   login: (data) => api.post('/auth/login', data),
   register: (data) => api.post('/auth/register', data),
-  getMe: () => api.get('/auth/me')
+  getMe: () => api.get('/auth/me'),
+  updateMe: (data) => api.put('/auth/me', data)
 };
 
 // Racks
@@ -63,5 +64,11 @@ export const ticketAPI = {
   getAll: (params) => api.get('/tickets', { params }),
   getMyTickets: (params) => api.get('/tickets/my-tickets', { params }),
   create: (data) => api.post('/tickets', data),
-  respond: (id, data) => api.put(`/tickets/${id}/respond`, data)
+  respond: (id, data) => api.put(`/tickets/${id}/respond`, data),
+  resetPassword: (id, data) => api.put(`/tickets/${id}/reset-password`, data),
+  requestReset: (email) => api.post('/tickets/request-reset', { email })
+};
+
+export const chatbotAPI = {
+  query: (query) => api.post('/chatbot/query', { query })
 };

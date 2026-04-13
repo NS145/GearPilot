@@ -47,6 +47,7 @@ app.use('/api/employee', employeeRoutes);
 app.use('/api/qr', qrRoutes);
 app.use('/api/activity', activityRoutes);
 app.use('/api/tickets', ticketRoutes);
+app.use('/api/chatbot', require('./routes/chatbot'));
 
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));

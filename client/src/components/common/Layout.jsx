@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { LayoutDashboard, Server, Grid, Monitor, Users, ClipboardList, Activity, LogOut, Menu, Bell, ChevronRight, Laptop, Ticket } from 'lucide-react';
+import { LayoutDashboard, Server, Grid, Monitor, Users, ClipboardList, Activity, LogOut, Menu, Bell, ChevronRight, Laptop, Ticket, Settings as SettingsIcon } from 'lucide-react';
+import ChatBot from './ChatBot';
 
 const adminNav = [
   { path:'/admin',             label:'Dashboard',   Icon:LayoutDashboard },
@@ -12,22 +13,46 @@ const adminNav = [
   { path:'/admin/assignments', label:'Assignments',  Icon:ClipboardList },
   { path:'/admin/activity',    label:'Activity Log', Icon:Activity },
   { path:'/admin/tickets',     label:'Tickets',      Icon:Ticket },
+  { path:'/settings',          label:'Settings',     Icon:SettingsIcon },
 ];
 const serviceNav = [
   { path:'/service',            label:'Dashboard',   Icon:LayoutDashboard },
   { path:'/service/trays',      label:'Tray View',   Icon:Grid },
   { path:'/service/assign',     label:'Assign',      Icon:ClipboardList },
+  { path:'/settings',           label:'Settings',    Icon:SettingsIcon },
 ];
 const employeeNav = [
   { path:'/employee',           label:'Dashboard',   Icon:LayoutDashboard },
+  { path:'/settings',           label:'Settings',    Icon:SettingsIcon },
 ];
 
 export default function Layout({ children, title }) {
   const { user, logout, isAdmin } = useAuth();
   const [open, setOpen] = useState(false);
+  const [hasOpenTickets, setHasOpenTickets] = useState(false);
   const location = useLocation();
   const navigate  = useNavigate();
   const nav = user?.role === 'employee' ? employeeNav : (isAdmin ? adminNav : serviceNav);
+
+  React.useEffect(() => {
+    if (isAdmin) {
+      const checkTickets = async () => {
+        try {
+          const { ticketAPI } = await import('../../api');
+          const { data } = await ticketAPI.getAll({ limit: 1, status: 'open' });
+          if (data && data.data && data.data.length > 0) {
+            setHasOpenTickets(true);
+          } else {
+            setHasOpenTickets(false);
+          }
+        } catch { /* ignore */ }
+      };
+      checkTickets();
+      // Poll every 30s
+      const interval = setInterval(checkTickets, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [isAdmin]);
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
@@ -43,28 +68,30 @@ export default function Layout({ children, title }) {
         <div className="absolute inset-0 grid-bg pointer-events-none opacity-40"/>
 
         <div className="relative flex items-center gap-3 px-5 py-5" style={{ borderBottom:'1px solid rgba(137,113,100,.15)' }}>
-          <div style={{ flex:1 }}>
-            <div style={{ fontSize:16, fontWeight:800, color:'#1c1c1e', letterSpacing:'-0.3px' }}>GearPilot</div>
+          <Link to="/" className="text-left w-full focus:outline-none flex-1 hover:opacity-80 transition-opacity block">
+            <div style={{ fontSize:16, fontWeight:800, color:'#1c1c1e', letterSpacing:'-0.3px' }} className="dark:text-white">GearPilot</div>
             <div style={{ fontSize:9, color:'#8e8e93', letterSpacing:'1.5px', textTransform:'uppercase' }}>Tracking System</div>
-          </div>
-        </div>
-
-        {/* Role badge */}
-        <div className="relative mx-3 mt-3 mb-1 px-3 py-2 rounded-xl" style={{ background: isAdmin ? 'rgba(220,38,38,.06)' : 'rgba(142,142,147,.06)', border:`1px solid ${isAdmin ? 'rgba(220,38,38,.1)' : 'rgba(142,142,147,.1)'}` }}>
-          <div style={{ fontSize:9, color:'#8e8e93', letterSpacing:'1.5px', textTransform:'uppercase', marginBottom:2 }}>Signed in as</div>
-          <div style={{ fontSize:12, color: isAdmin ? '#dc2626' : '#56516a', fontWeight:700 }}>{user?.name}</div>
+          </Link>
         </div>
 
         {/* Nav */}
         <nav className="flex-1 px-2.5 py-2 overflow-y-auto space-y-0.5 relative">
           {nav.map(({ path, label, Icon }) => {
             const active = location.pathname === path;
+            const isTicketGlow = label === 'Tickets' && hasOpenTickets;
             return (
               <Link key={path} to={path} onClick={()=>setOpen(false)}
-                className={`nav-item ${active?'active':''}`}>
-                <Icon className="w-3.5 h-3.5 flex-shrink-0"/>
+                className={`nav-item ${active?'active':''} ${isTicketGlow ? 'bg-red-50 text-red-600 font-semibold' : ''}`}
+                style={{ position: 'relative' }}>
+                <Icon className={`w-3.5 h-3.5 flex-shrink-0 ${isTicketGlow ? 'text-red-500' : ''}`}/>
                 <span>{label}</span>
                 {active && <div className="ml-auto w-1.5 h-1.5 rounded-full" style={{ background:'#dc2626', boxShadow:'0 0 6px rgba(220,38,38,.4)' }}/>}
+                {isTicketGlow && !active && (
+                   <div className="absolute right-3 w-2 h-2 rounded-full bg-red-500 animate-ping"/>
+                )}
+                {isTicketGlow && !active && (
+                   <div className="absolute right-3 w-2 h-2 rounded-full bg-red-500"/>
+                )}
               </Link>
             );
           })}
@@ -91,14 +118,9 @@ export default function Layout({ children, title }) {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button className="relative flex items-center justify-center rounded-xl" style={{ width:36,height:36,background:'#f5f3f7',border:'1px solid rgba(137,113,100,.1)',color:'#7a7588',cursor:'pointer' }}>
-              <Bell className="w-4 h-4"/>
-              <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full" style={{ background:'#ef4444', boxShadow:'0 0 6px #ef4444' }}/>
-            </button>
-            <div className="w-px h-7" style={{ background:'rgba(137,113,100,.1)' }}/>
             <div className="flex items-center gap-2.5">
-              <div className="flex items-center justify-center rounded-xl text-white text-xs font-bold" style={{ width:32,height:32,background:'linear-gradient(135deg,#dc2626,#ef4444)' }}>
-                {user?.name?.[0]}
+              <div className="flex items-center justify-center rounded-xl text-white text-xs font-bold overflow-hidden" style={{ width:32,height:32,background:'linear-gradient(135deg,#dc2626,#ef4444)' }}>
+                {user?.avatarUrl ? <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" /> : user?.name?.[0]}
               </div>
               <div style={{ lineHeight:1.4 }}>
                 <div style={{ fontSize:11, color:'#1c1c1e', fontWeight:600 }}>{user?.name}</div>
@@ -117,6 +139,8 @@ export default function Layout({ children, title }) {
           </div>
         </main>
       </div>
+
+      {user && (isAdmin || user.role === 'service') && <ChatBot />}
     </div>
   );
 }

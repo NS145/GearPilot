@@ -41,3 +41,4 @@
 {"level":"error","message":"Transaction numbers are only allowed on a replica set member or mongos - POST /api/assignment/assign","timestamp":"2026-03-25T14:18:22.436Z"}
 {"level":"error","message":"Employee already has an assigned laptop - POST /api/assignment/assign","timestamp":"2026-03-25T15:06:42.947Z"}
 {"level":"error","message":"Employee already has an assigned laptop - POST /api/assignment/assign","timestamp":"2026-03-25T15:16:56.233Z"}
+{"level":"error","message":"Invalid credentials - POST /api/auth/login","timestamp":"2026-04-13T17:09:49.758Z"}

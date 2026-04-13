@@ -17,7 +17,7 @@ exports.register = async (req, res, next) => {
     res.status(201).json({
       success: true,
       token,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role }
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl }
     });
   } catch (err) { next(err); }
 };
@@ -37,11 +37,25 @@ exports.login = async (req, res, next) => {
     res.json({
       success: true,
       token,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role }
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl }
     });
   } catch (err) { next(err); }
 };
 
 exports.getMe = async (req, res) => {
   res.json({ success: true, user: req.user });
+};
+
+exports.updateMe = async (req, res, next) => {
+  try {
+    const { name, avatarUrl } = req.body;
+    const user = await User.findById(req.user._id);
+    if (!user) throw new AppError('User not found', 404);
+
+    if (name) user.name = name;
+    if (avatarUrl !== undefined) user.avatarUrl = avatarUrl;
+    
+    await user.save();
+    res.json({ success: true, user });
+  } catch (err) { next(err); }
 };

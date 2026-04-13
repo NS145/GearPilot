@@ -18,6 +18,9 @@ export default function AdminTickets() {
   const [responseForm, setResponseForm] = useState({ response: '', status: 'open' });
   const [saving, setSaving] = useState(false);
 
+  const [resetModal, setResetModal] = useState(false);
+  const [resetForm, setResetForm] = useState('');
+
   const fetchTickets = useCallback(async () => {
     setLoading(true);
     try {
@@ -38,6 +41,26 @@ export default function AdminTickets() {
       await ticketAPI.respond(selectedTicket._id, responseForm);
       toast.success('Ticket updated successfully');
       setRespondModal(false);
+      fetchTickets();
+    } finally { setSaving(false); }
+  };
+
+  const openReset = (t) => {
+    setSelectedTicket(t);
+    const suggestedPassword = t.employeeId?.name ? t.employeeId.name.replace(/\s+/g, '').toLowerCase() + '@laptopwms' : '';
+    setResetForm(suggestedPassword);
+    setResetModal(true);
+  };
+
+  const submitResetPassword = async (e) => {
+    e.preventDefault();
+    if (!resetForm) return toast.error('Password is required');
+    setSaving(true);
+    try {
+      const { data } = await ticketAPI.resetPassword(selectedTicket._id, { password: resetForm });
+      toast.success('Password successfully reset!');
+      alert(`New password for ${selectedTicket.employeeId?.name}: ${data.newPassword}`);
+      setResetModal(false);
       fetchTickets();
     } finally { setSaving(false); }
   };
@@ -86,6 +109,11 @@ export default function AdminTickets() {
                     <td className="px-4 py-3 whitespace-nowrap">{format(new Date(t.createdAt), 'dd MMM yyyy')}</td>
                     <td className="px-4 py-3"><StatusBadge status={t.status} /></td>
                     <td className="px-4 py-3">
+                      {t.type === 'password_reset' && t.status === 'open' ? (
+                        <button onClick={() => openReset(t)} className="btn-primary py-1 px-2 text-xs flex items-center gap-1 mx-1">
+                          Reset Password
+                        </button>
+                      ) : null}
                       <button onClick={() => openRespond(t)} className="btn-secondary py-1 px-2 text-xs flex items-center gap-1">
                         <MessageSquare className="w-3 h-3" /> {t.status === 'open' ? 'Respond' : 'View'}
                       </button>
@@ -120,6 +148,26 @@ export default function AdminTickets() {
             <div className="flex justify-end gap-3">
               <button type="button" onClick={() => setRespondModal(false)} className="btn-secondary">Cancel</button>
               <button type="submit" disabled={saving} className="btn-primary">{saving ? 'Saving...' : 'Save Response'}</button>
+            </div>
+          </form>
+        )}
+      </Modal>
+
+      <Modal isOpen={resetModal} onClose={() => setResetModal(false)} title="Reset Employee Password">
+        {selectedTicket && (
+          <form onSubmit={submitResetPassword} className="space-y-4">
+            <div className="bg-gray-50 p-4 rounded-lg text-sm mb-4">
+              <h3 className="font-medium">Reset Password for {selectedTicket.employeeId?.name}</h3>
+              <p className="text-gray-600 mt-1">You can visually edit the suggested password before saving.</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">New Password</label>
+              <input type="text" className="input font-mono border-red-200 focus:ring-red-500" value={resetForm} onChange={e => setResetForm(e.target.value)} required />
+              <div className="text-xs text-gray-500 mt-1">This exact password will be set via the database. It will immediately complete this ticket.</div>
+            </div>
+            <div className="flex justify-end gap-3 mt-4">
+              <button type="button" onClick={() => setResetModal(false)} className="btn-secondary">Cancel</button>
+              <button type="submit" disabled={saving} className="btn-primary">{saving ? 'Processing...' : 'Confirm Reset'}</button>
             </div>
           </form>
         )}

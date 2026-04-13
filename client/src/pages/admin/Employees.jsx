@@ -6,7 +6,7 @@ import { employeeAPI } from '../../api';
 import toast from 'react-hot-toast';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 
-const INIT = { employeeId: '', name: '', email: '', department: '', status: 'active' };
+const INIT = { employeeId: '', name: '', email: '', department: '', status: 'active', plainPassword: '' };
 
 export default function AdminEmployees() {
   const [employees, setEmployees] = useState([]);
@@ -35,7 +35,7 @@ export default function AdminEmployees() {
   useEffect(() => { fetch(); }, [fetch]);
 
   const openCreate = () => { setEditing(null); setForm(INIT); setModal(true); };
-  const openEdit = (e) => { setEditing(e); setForm({ employeeId: e.employeeId, name: e.name, email: e.email, department: e.department, status: e.status }); setModal(true); };
+  const openEdit = (e) => { setEditing(e); setForm({ employeeId: e.employeeId, name: e.name, email: e.email, department: e.department, status: e.status, plainPassword: e.plainPassword || '' }); setModal(true); };
 
   const handleSubmit = async (ev) => {
     ev.preventDefault();
@@ -99,6 +99,13 @@ export default function AdminEmployees() {
               <input className="input" type={key === 'email' ? 'email' : 'text'} value={form[key]} onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))} required />
             </div>
           ))}
+          {editing && (
+            <div>
+              <label className="block text-sm font-medium mb-1">Password</label>
+              <input className="input border-red-200 focus:ring-red-500 font-mono" placeholder="Change login password..." type="text" value={form.plainPassword} onChange={e => setForm(p => ({ ...p, plainPassword: e.target.value }))} />
+              <div className="text-xs text-gray-500 mt-1">Editing this will securely change the employee's login credentials.</div>
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium mb-1">Status</label>
             <select className="input" value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value }))}>

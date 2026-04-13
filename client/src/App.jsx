@@ -18,6 +18,7 @@ import ServiceAssign from './pages/service/Assign';
 
 import EmployeeDashboard from './pages/employee/Dashboard';
 import AdminTickets from './pages/admin/Tickets';
+import Settings from './pages/common/Settings';
 
 const ProtectedRoute = ({ children, roleRequired }) => {
   const { user, loading } = useAuth();
@@ -64,6 +65,9 @@ export default function App() {
 
           {/* Employee routes */}
           <Route path="/employee" element={<ProtectedRoute roleRequired="employee"><EmployeeDashboard /></ProtectedRoute>} />
+
+          {/* Common routes */}
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

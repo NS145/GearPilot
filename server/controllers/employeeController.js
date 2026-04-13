@@ -46,6 +46,17 @@ exports.updateEmployee = async (req, res, next) => {
   try {
     const employee = await Employee.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
     if (!employee) throw new AppError('Employee not found', 404);
+
+    // If plain password was provided, also sync it to their User account
+    if (req.body.plainPassword) {
+      const User = require('../models/User');
+      const employeeUser = await User.findOne({ email: employee.email });
+      if (employeeUser) {
+        employeeUser.password = req.body.plainPassword;
+        await employeeUser.save();
+      }
+    }
+
     logActivity({ userId: req.user._id, action: 'UPDATE_EMPLOYEE', entity: 'Employee', entityId: employee._id, ip: req.ip });
     res.json({ success: true, data: employee });
   } catch (err) { next(err); }

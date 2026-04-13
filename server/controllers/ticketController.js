@@ -62,3 +62,63 @@ exports.respondToTicket = async (req, res, next) => {
     res.json({ success: true, data: ticket });
   } catch (err) { next(err); }
 };
+
+exports.resetEmployeePassword = async (req, res, next) => {
+  try {
+    const ticket = await Ticket.findById(req.params.id).populate('employeeId');
+    if (!ticket) throw new AppError('Ticket not found', 404);
+    if (ticket.type !== 'password_reset') throw new AppError('Not a password reset ticket', 400);
+
+    const User = require('../models/User');
+    const employeeUser = await User.findById(ticket.employeeId._id);
+    if (!employeeUser) throw new AppError('Employee user not found', 404);
+
+    const newPassword = req.body.password || (employeeUser.name.replace(/\s+/g, '').toLowerCase() + '@laptopwms');
+    employeeUser.password = newPassword;
+    await employeeUser.save();
+
+    const Employee = require('../models/Employee');
+    const employeeProfile = await Employee.findOne({ email: employeeUser.email });
+    if (employeeProfile) {
+      employeeProfile.plainPassword = newPassword;
+      await employeeProfile.save();
+    }
+
+    ticket.adminResponse = `Your password has been successfully reset. New Password: ${newPassword}\nPlease keep it safe.`;
+    ticket.status = 'solved';
+    ticket.adminId = req.user._id;
+    await ticket.save();
+
+    logActivity({ userId: req.user._id, action: 'RESET_PASSWORD_VIA_TICKET', entity: 'Ticket', entityId: ticket._id, ip: req.ip });
+    res.json({ success: true, data: ticket, newPassword });
+  } catch (err) { next(err); }
+};
+
+exports.requestPasswordReset = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) throw new AppError('Email is required', 400);
+
+    const User = require('../models/User');
+    const user = await User.findOne({ email, role: 'employee' });
+    if (!user) {
+      // Return a 200 anyway so we don't leak user existence
+      return res.json({ success: true, message: 'If an employee account exists for this email, a reset request ticket has been raised.' });
+    }
+
+    // Check if an open reset ticket already exists
+    const existingTicket = await Ticket.findOne({ employeeId: user._id, type: 'password_reset', status: 'open' });
+    if (existingTicket) {
+      return res.json({ success: true, message: 'A password reset request is already active for this account.' });
+    }
+
+    await Ticket.create({
+      employeeId: user._id,
+      title: 'Password change requested from login screen',
+      description: 'The employee requested a password reset from the login screen.',
+      type: 'password_reset'
+    });
+
+    res.json({ success: true, message: 'If an employee account exists for this email, a reset request ticket has been raised.' });
+  } catch (err) { next(err); }
+};
