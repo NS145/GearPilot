@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "GearPilot",
+    "slug": "gear-pilot",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#1e40af"
+    },
+    "plugins": [
+      [
+        "expo-barcode-scanner",
+        {
+          "cameraPermission": "Allow Laptop WMS to access camera for QR scanning."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Laptop WMS to access your camera."
+        }
+      ]
+    ],
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1e40af"
+      },
+      "permissions": ["CAMERA"]
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app needs camera access to scan QR codes."
+      }
+    }
+  }
+}
