@@ -6,46 +6,68 @@ const AppError = require('../utils/AppError');
 exports.queryBot = async (req, res, next) => {
   try {
     const { query } = req.body;
-    if (!query) return res.json({ success: true, message: "Hello! I am GearBot. Ask me about an employee, laptop, or rack." });
+    if (!query) return res.json({ success: true, message: "Hello! I am GearBot. Click one of the options below to get started." });
 
     const lowerQuery = query.toLowerCase();
     
-    // Very simple NLP detection
-    if (lowerQuery.includes('employee') || lowerQuery.includes('who is')) {
-      const parts = lowerQuery.split(' ');
-      const nameGuess = parts[parts.length - 1]; // very naive guess
-      const employees = await Employee.find({ $or: [{ name: new RegExp(nameGuess, 'i') }, { employeeId: new RegExp(nameGuess, 'i') }] }).limit(3);
-      if (employees.length) {
-        let msg = `I found these employees:\n`;
-        employees.forEach(e => msg += `- ${e.name} (${e.employeeId}), Dept: ${e.department}\n`);
-        return res.json({ success: true, message: msg });
-      } else {
-        return res.json({ success: true, message: `I couldn't find any employee matching that description.` });
-      }
+    // --- QUICK STATS ---
+    if (lowerQuery.includes('stats') || lowerQuery.includes('count')) {
+      const [laptops, employees, racks] = await Promise.all([
+        Laptop.countDocuments(),
+        Employee.countDocuments(),
+        Rack.countDocuments()
+      ]);
+      const available = await Laptop.countDocuments({ status: 'available' });
+      
+      return res.json({ 
+        success: true, 
+        message: `📊 **Warehouse Overview**\n\n- **Total Laptops:** ${laptops} (${available} available)\n- **Registered Employees:** ${employees}\n- **Storage Racks:** ${racks}` 
+      });
     }
 
-    if (lowerQuery.includes('laptop') || lowerQuery.includes('serial') || lowerQuery.includes('macbook') || lowerQuery.includes('dell')) {
-      // Find laptops
-      const parts = lowerQuery.split(' ');
-      const hint = parts.find(p => p.length > 3 && p !== 'laptop' && p !== 'serial');
-      const laptops = await Laptop.find({ $or: [{ serialNumber: new RegExp(hint || '', 'i') }, { model: new RegExp(hint || '', 'i') }] }).limit(3);
-      if (laptops.length) {
-        let msg = `Here are the laptops I found:\n`;
-        laptops.forEach(l => msg += `- ${l.model} (${l.serialNumber}) | Status: ${l.status}\n`);
-        return res.json({ success: true, message: msg });
-      } else {
-        return res.json({ success: true, message: `I couldn't find any laptop.` });
-      }
-    }
-
+    // --- RACKS ---
     if (lowerQuery.includes('rack')) {
       const racks = await Rack.find().limit(5);
-      let msg = `Here are the active racks in the warehouse:\n`;
-      racks.forEach(r => msg += `- ${r.rackNumber} situated at ${r.location} (Status: ${r.status})\n`);
+      let msg = `🏗️ **Active Racks Status**\n\n`;
+      racks.forEach(r => msg += `- **${r.rackNumber}**: ${r.location} [${r.status.toUpperCase()}]\n`);
       return res.json({ success: true, message: msg });
     }
 
-    return res.json({ success: true, message: "I'm sorry, I am a simple bot. Try asking me about 'employee Alice', 'laptop', or 'rack'." });
+    // --- TRAYS ---
+    if (lowerQuery.includes('tray')) {
+      const occupiedTrays = await Tray.find({ status: 'occupied' }).populate('rackId').limit(5);
+      const count = await Tray.countDocuments({ status: 'occupied' });
+      
+      let msg = `📥 **Occupied Trays (${count} total)**\n\n`;
+      if (occupiedTrays.length === 0) {
+        msg = "All trays are currently free!";
+      } else {
+        occupiedTrays.forEach(t => {
+          msg += `- **${t.trayNumber}** (in ${t.rackId?.rackNumber || 'Unknown Rack'})\n`;
+        });
+      }
+      return res.json({ success: true, message: msg });
+    }
+
+    // --- EMPLOYEES ---
+    if (lowerQuery.includes('employee')) {
+      const employees = await Employee.find().sort({ createdAt: -1 }).limit(5);
+      let msg = `👤 **Recent Employees**\n\n`;
+      employees.forEach(e => msg += `- ${e.name} (${e.employeeId}) | ${e.department}\n`);
+      return res.json({ success: true, message: msg });
+    }
+
+    // --- LAPTOPS ---
+    if (lowerQuery.includes('laptop')) {
+      const counts = await Laptop.aggregate([
+        { $group: { _id: '$status', count: { $sum: 1 } } }
+      ]);
+      let msg = `💻 **Laptop Inventory Summary**\n\n`;
+      counts.forEach(c => msg += `- **${c._id.toUpperCase()}**: ${c.count}\n`);
+      return res.json({ success: true, message: msg });
+    }
+
+    return res.json({ success: true, message: "I'm sorry, I couldn't process that command. Please try one of the dashboard buttons below." });
 
   } catch (err) { next(err); }
 };
