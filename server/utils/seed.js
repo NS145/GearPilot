@@ -12,8 +12,21 @@ const Assignment = require('../models/Assignment');
 const Activity = require('../models/Activity');
 
 const seed = async () => {
-  await mongoose.connect(process.env.MONGODB_URI);
-  console.log('Connected to MongoDB');
+  if (!process.env.MONGODB_URI) {
+    console.error('\n❌ ERROR: MONGODB_URI is not defined in your .env file.');
+    console.error('Please create a .env file in the server directory with:');
+    console.error('MONGODB_URI=mongodb://localhost:27017/gear-pilot\n');
+    process.exit(1);
+  }
+
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log('📦 Connected to MongoDB...');
+  } catch (err) {
+    console.error('\n❌ ERROR: Could not connect to MongoDB.');
+    console.error('Ensure MongoDB is running locally on your machine.\n');
+    process.exit(1);
+  }
 
   // Clear collections
   console.log('Clearing existing data...');
