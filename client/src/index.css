@@ -5,20 +5,20 @@
 @tailwind utilities;
 
 :root {
-  --bg-base:      #f9f9fa;
-  --bg-surface:   #ffffff;
-  --border:       rgba(220,38,38,.15);
-  --border-hover: rgba(220,38,38,.35);
+  --bg-base:      #f0f2f5;
+  --bg-surface:   #f8f9fb;
+  --border:       rgba(220,38,38,.12);
+  --border-hover: rgba(220,38,38,.25);
   --accent:       #dc2626; /* Red-600 */
   --accent-2:     #ef4444; /* Red-500 */
   --font-mono:    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   
   /* Extended palette */
-  --dark:         #1c1c1e;
-  --muted:        #8e8e93;
+  --dark:         #232326;
+  --muted:        #6b7280;
   --mocha:        #dc2626;
-  --light:        #e5e5ea;
+  --light:        #e2e8f0;
 }
 
 

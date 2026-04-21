@@ -53,13 +53,13 @@ const assignLaptopToEmployee = async ({ employeeId, assignedBy, notes, ip }) => 
     if (!laptop) throw new AppError('No available laptops in the warehouse', 404);
 
     // Create assignment record
-    const assignment = await Assignment.create([{
+    const assignment = await Assignment.create({
       laptopId: laptop._id,
       employeeId: employee._id,
       assignedBy,
       notes,
       status: 'active'
-    }]);
+    });
 
     const User = require('../models/User'); // require here to avoid circular dep if any
     let employeeUser = await User.findOne({ email: employee.email });
@@ -83,7 +83,7 @@ const assignLaptopToEmployee = async ({ employeeId, assignedBy, notes, ip }) => 
       userId: assignedBy,
       action: 'ASSIGN_LAPTOP',
       entity: 'Assignment',
-      entityId: assignment[0]._id,
+      entityId: assignment._id,
       details: {
         laptopId: laptop._id,
         laptopModel: laptop.model,
@@ -96,7 +96,7 @@ const assignLaptopToEmployee = async ({ employeeId, assignedBy, notes, ip }) => 
     });
 
     return {
-      assignment: assignment[0],
+      assignment: assignment,
       laptop,
       employee,
       employeeCredentials

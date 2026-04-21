@@ -1,7 +1,7 @@
 const Laptop = require('../models/Laptop');
 const Employee = require('../models/Employee');
 const Rack = require('../models/Rack');
-const ObjectUtils = require('../utils/AppError'); // Maybe use AppError if needed
+const AppError = require('../utils/AppError');
 
 exports.queryBot = async (req, res, next) => {
   try {

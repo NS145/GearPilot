@@ -138,11 +138,11 @@ export default function AdminDashboard() {
                     <td style={{ fontWeight:700, color:'#38bdf8', fontFamily:"'JetBrains Mono'" }}>{row.rackNumber}</td>
                     <td style={{ color:'#94a3b8', fontFamily:"'JetBrains Mono'" }}>{row.trayNumber}</td>
                     <td><StatusBadge status={row.trayStatus}/></td>
-                    <td style={{ fontWeight:500, color:'#e2e8f0' }}>{row.model}</td>
+                    <td style={{ fontWeight:500, color:'#1e293b' }}>{row.model}</td>
                     <td style={{ color:'#475569', fontFamily:"'JetBrains Mono'", fontSize:11 }}>{row.serialNumber}</td>
                     <td style={{ color:'#64748b', whiteSpace:'nowrap' }}>{row.purchaseDate ? format(new Date(row.purchaseDate),'dd MMM yyyy') : '—'}</td>
                     <td><StatusBadge status={row.status}/></td>
-                    <td style={{ color: row.assignedEmployee ? '#e2e8f0' : '#334155' }}>{row.assignedEmployee||'—'}</td>
+                    <td style={{ color: row.assignedEmployee ? '#334155' : '#94a3b8' }}>{row.assignedEmployee||'—'}</td>
                     <td style={{ color:'#475569', whiteSpace:'nowrap' }}>{row.lastReturnedDate ? format(new Date(row.lastReturnedDate),'dd MMM yyyy') : '—'}</td>
                   </tr>
                 ))}

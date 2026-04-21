@@ -128,7 +128,7 @@ export function EmptyState({ message='No data found' }) {
 export function SectionHeader({ title, action }) {
   return (
     <div className="flex items-center justify-between mb-5">
-      <h2 style={{ fontFamily:"'Syne',sans-serif", fontSize:18, fontWeight:700, color:'#f1f5f9' }}>{title}</h2>
+      <h2 style={{ fontFamily:"'Syne',sans-serif", fontSize:18, fontWeight:700, color:'#1e293b' }}>{title}</h2>
       {action}
     </div>
   );
