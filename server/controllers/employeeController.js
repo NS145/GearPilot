@@ -11,7 +11,7 @@ exports.createEmployee = async (req, res, next) => {
     const User = require('../models/User');
     const existingUser = await User.findOne({ email: employee.email });
     if (!existingUser) {
-      const initPassword = req.body.plainPassword || (employee.name.replace(/\s+/g, '').toLowerCase() + '@laptopwms');
+      const initPassword = req.body.plainPassword || (employee.name.replace(/\s+/g, '').toLowerCase() + '@123');
       await User.create({
         name: employee.name,
         email: employee.email,
@@ -24,7 +24,9 @@ exports.createEmployee = async (req, res, next) => {
       }
     }
 
-    logActivity({ userId: req.user._id, action: 'CREATE_EMPLOYEE', entity: 'Employee', entityId: employee._id, ip: req.ip });
+    if (req.user) {
+      logActivity({ userId: req.user._id, action: 'CREATE_EMPLOYEE', entity: 'Employee', entityId: employee._id, ip: req.ip });
+    }
     res.status(201).json({ success: true, data: employee });
   } catch (err) { next(err); }
 };

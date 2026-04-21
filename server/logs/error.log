@@ -49,3 +49,13 @@
 {"level":"error","message":"Invalid credentials - POST /api/auth/login","timestamp":"2026-04-13T17:22:30.671Z"}
 {"level":"error","message":"Invalid credentials - POST /api/auth/login","timestamp":"2026-04-13T17:24:07.942Z"}
 {"level":"error","message":"Invalid credentials - POST /api/auth/login","timestamp":"2026-04-20T12:44:28.636Z"}
+{"level":"error","message":"User no longer exists - GET /api/tray?page=1&limit=20","timestamp":"2026-04-21T03:27:20.690Z"}
+{"level":"error","message":"User no longer exists - GET /api/tray?page=1&limit=20","timestamp":"2026-04-21T03:27:20.700Z"}
+{"level":"error","message":"User no longer exists - GET /api/assignment?page=1&limit=20","timestamp":"2026-04-21T03:29:27.836Z"}
+{"level":"error","message":"User no longer exists - GET /api/employee?status=active&limit=100","timestamp":"2026-04-21T03:29:27.844Z"}
+{"level":"error","message":"User no longer exists - GET /api/tickets?limit=1&status=open","timestamp":"2026-04-21T03:29:27.847Z"}
+{"level":"error","message":"User no longer exists - GET /api/assignment?page=1&limit=20","timestamp":"2026-04-21T03:29:27.855Z"}
+{"level":"error","message":"User no longer exists - GET /api/employee?status=active&limit=100","timestamp":"2026-04-21T03:29:27.857Z"}
+{"level":"error","message":"User no longer exists - GET /api/tickets?limit=1&status=open","timestamp":"2026-04-21T03:29:27.859Z"}
+{"level":"error","message":"Invalid credentials - POST /api/auth/login","timestamp":"2026-04-21T03:34:41.495Z"}
+{"level":"error","message":"Invalid credentials - POST /api/auth/login","timestamp":"2026-04-21T03:35:20.045Z"}

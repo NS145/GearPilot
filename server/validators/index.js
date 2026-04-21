@@ -56,7 +56,8 @@ const employeeSchema = Joi.object({
   name: Joi.string().required(),
   email: Joi.string().email().required(),
   department: Joi.string().required(),
-  status: Joi.string().valid('active', 'exited').optional()
+  status: Joi.string().valid('active', 'exited').optional(),
+  plainPassword: Joi.string().optional().allow('', null)
 });
 
 // Assignment

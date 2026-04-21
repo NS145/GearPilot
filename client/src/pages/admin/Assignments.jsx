@@ -76,29 +76,29 @@ export default function AdminAssignments() {
 
       <div className="card overflow-hidden p-0">
         <div className="overflow-x-auto">
-          {loading ? <LoadingOverlay /> : assignments.length === 0 ? <EmptyState /> : (
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b">
+          {loading ? <LoadingOverlay /> : (assignments?.length === 0) ? <EmptyState /> : (
+            <table className="wms-table">
+              <thead>
                 <tr>
                   {['Laptop', 'Serial #', 'Employee', 'Department', 'Assigned Date', 'Returned Date', 'Status', 'Actions'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                    <th key={h}>{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody>
                 {assignments.map(a => (
-                  <tr key={a._id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium">{a.laptopId?.model}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-gray-500">{a.laptopId?.serialNumber}</td>
-                    <td className="px-4 py-3">{a.employeeId?.name}</td>
-                    <td className="px-4 py-3 text-gray-500">{a.employeeId?.department}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">{format(new Date(a.assignedDate), 'dd MMM yyyy')}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">{a.returnedDate ? format(new Date(a.returnedDate), 'dd MMM yyyy') : '—'}</td>
-                    <td className="px-4 py-3"><StatusBadge status={a.status} /></td>
-                    <td className="px-4 py-3">
+                  <tr key={a._id}>
+                    <td style={{ fontWeight: 600, color: '#1e293b' }}>{a.laptopId?.model || 'Unknown Laptop'}</td>
+                    <td style={{ fontFamily: "'JetBrains Mono'", fontSize: 11, color: '#64748b' }}>{a.laptopId?.serialNumber || '—'}</td>
+                    <td style={{ fontWeight: 500, color: '#1e293b' }}>{a.employeeId?.name || 'Unknown Employee'}</td>
+                    <td style={{ color: '#475569' }}>{a.employeeId?.department || '—'}</td>
+                    <td style={{ color: '#64748b' }}>{a.assignedDate ? format(new Date(a.assignedDate), 'dd MMM yyyy') : '—'}</td>
+                    <td style={{ color: '#64748b' }}>{a.returnedDate ? format(new Date(a.returnedDate), 'dd MMM yyyy') : '—'}</td>
+                    <td><StatusBadge status={a.status} /></td>
+                    <td>
                       {a.status === 'active' && (
-                        <button onClick={() => { setSelectedAssignment(a); setReturnModal(true); }} className="flex items-center gap-1 text-xs text-orange-600 hover:text-orange-800 font-medium">
-                          <RotateCcw className="w-3 h-3" /> Return
+                        <button onClick={() => { setSelectedAssignment(a); setReturnModal(true); }} className="btn-icon" title="Return Laptop" style={{ color: '#f59e0b', background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)' }}>
+                          <RotateCcw className="w-3.5 h-3.5" />
                         </button>
                       )}
                     </td>

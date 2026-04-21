@@ -65,7 +65,7 @@ const assignLaptopToEmployee = async ({ employeeId, assignedBy, notes, ip }) => 
     let employeeUser = await User.findOne({ email: employee.email });
     let employeeCredentials = null;
     if (!employeeUser) {
-      const generatedPassword = employee.name.replace(/\s+/g, '').toLowerCase() + '@laptopwms';
+      const generatedPassword = employee.name.replace(/\s+/g, '').toLowerCase() + '@123';
       employeeUser = await User.create({
         name: employee.name,
         email: employee.email,
