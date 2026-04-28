@@ -128,10 +128,19 @@ export default function AdminTrays() {
 
       <Modal isOpen={!!qrModal} onClose={() => setQrModal(null)} title="QR Code Details" size="sm">
         {qrModal && (
-          <div className="text-center space-y-3">
+          <div className="text-center space-y-4">
             <p className="text-sm text-gray-600">Tray <strong>{qrModal.trayNumber}</strong></p>
-            <div className="bg-gray-100 rounded-lg p-4 font-mono text-xs break-all">{qrModal.qrCode}</div>
-            <p className="text-xs text-gray-400">Use this code in the mobile app QR scanner</p>
+            <div className="flex justify-center p-4 bg-white border rounded-xl shadow-sm">
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${qrModal.qrCode}`} 
+                alt="QR Code" 
+                className="w-[180px] h-[180px]"
+              />
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3 font-mono text-[10px] break-all text-gray-500 border">
+              {qrModal.qrCode}
+            </div>
+            <p className="text-xs text-gray-400">Scan this code with the mobile app</p>
           </div>
         )}
       </Modal>

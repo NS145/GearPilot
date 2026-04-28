@@ -1,21 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { BarCodeScanner } from 'expo-barcode-scanner';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { trayAPI } from '../api';
 import Toast from 'react-native-toast-message';
 
 export default function QRScannerScreen({ navigation }) {
-  const [hasPermission, setHasPermission] = useState(null);
+  const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    BarCodeScanner.requestPermissionsAsync().then(({ status }) => {
-      setHasPermission(status === 'granted');
-    });
+    if (!permission) requestPermission();
   }, []);
 
-  const handleBarCodeScanned = async ({ type, data }) => {
+  const handleBarCodeScanned = async ({ data }) => {
     if (scanned || loading) return;
     setScanned(true);
     setLoading(true);
@@ -30,17 +28,23 @@ export default function QRScannerScreen({ navigation }) {
     }
   };
 
-  if (hasPermission === null) return <View style={styles.center}><ActivityIndicator size="large" color="#2563eb" /></View>;
-  if (hasPermission === false) return (
+  if (!permission) return <View style={styles.center}><ActivityIndicator size="large" color="#2563eb" /></View>;
+  if (!permission.granted) return (
     <View style={styles.center}>
       <Text style={styles.errorText}>Camera permission denied</Text>
+      <TouchableOpacity onPress={requestPermission} style={styles.retryBtn}>
+        <Text style={styles.retryText}>Grant Permission</Text>
+      </TouchableOpacity>
     </View>
   );
 
   return (
     <View style={styles.container}>
-      <BarCodeScanner
-        onBarCodeScanned={handleBarCodeScanned}
+      <CameraView
+        onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+        barcodeScannerSettings={{
+          barcodeTypes: ['qr'],
+        }}
         style={StyleSheet.absoluteFillObject}
       />
       <View style={styles.overlay}>
