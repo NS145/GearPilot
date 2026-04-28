@@ -11,7 +11,7 @@ export default function AssignLaptopScreen({ navigation, route }) {
   const [result, setResult] = useState(null);
 
   useEffect(() => {
-    employeeAPI.getAll({ status: 'active', limit: 100 }).then(({ data }) => {
+    employeeAPI.getAll({ hasPendingRequest: 'true', limit: 100 }).then(({ data }) => {
       setEmployees(data.data);
       if (data.data.length) setSelectedEmployee(data.data[0]._id);
     });

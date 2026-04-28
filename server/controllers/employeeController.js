@@ -36,6 +36,11 @@ exports.getAllEmployees = async (req, res, next) => {
     const { page, limit, skip } = getPagination(req.query);
     const filter = {};
     if (req.query.status) filter.status = req.query.status;
+    if (req.query.hasPendingRequest === 'true') {
+      const Assignment = require('../models/Assignment');
+      const pendingRequests = await Assignment.find({ status: 'requested' }).distinct('employeeId');
+      filter._id = { $in: pendingRequests };
+    }
     if (req.query.department) filter.department = { $regex: req.query.department, $options: 'i' };
     if (req.query.search) {
       filter.$or = [

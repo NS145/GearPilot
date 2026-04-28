@@ -3,7 +3,7 @@ import Layout from '../../components/common/Layout';
 import { StatusBadge, LoadingOverlay, Pagination, EmptyState, Modal } from '../../components/common';
 import { trayAPI, laptopAPI } from '../../api';
 import toast from 'react-hot-toast';
-import { Search } from 'lucide-react';
+import { Search, QrCode } from 'lucide-react';
 
 export default function ServiceTrays() {
   const [trays, setTrays] = useState([]);
@@ -16,6 +16,7 @@ export default function ServiceTrays() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [addLaptopForm, setAddLaptopForm] = useState({ model: '', ram: '', storage: '', serialNumber: '', purchaseDate: '', vendor: '' });
   const [addingLaptop, setAddingLaptop] = useState(false);
+  const [qrModal, setQrModal] = useState(null);
 
   const fetchTrays = useCallback(async () => {
     setLoading(true);
@@ -62,8 +63,11 @@ export default function ServiceTrays() {
                     <td className="px-4 py-3 font-semibold">{t.trayNumber}</td>
                     <td className="px-4 py-3">{t.rackId?.rackNumber}</td>
                     <td className="px-4 py-3"><StatusBadge status={t.status} /></td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 flex gap-2">
                       <button onClick={() => openTray(t)} className="text-xs btn-secondary py-1 px-3">View</button>
+                      <button onClick={() => setQrModal(t)} className="text-xs flex items-center gap-1 text-purple-600 hover:text-purple-800 font-medium">
+                        <QrCode className="w-3.5 h-3.5" /> QR
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -115,6 +119,25 @@ export default function ServiceTrays() {
                 </form>
               </div>
             )}
+          </div>
+        )}
+      </Modal>
+
+      <Modal isOpen={!!qrModal} onClose={() => setQrModal(null)} title="Tray QR Code" size="sm">
+        {qrModal && (
+          <div className="text-center space-y-4">
+            <p className="text-sm text-gray-600">Tray <strong>{qrModal.trayNumber}</strong></p>
+            <div className="flex justify-center p-4 bg-white border rounded-xl shadow-sm">
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${qrModal.qrCode}`} 
+                alt="QR Code" 
+                className="w-[180px] h-[180px]"
+              />
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3 font-mono text-[10px] break-all text-gray-500 border">
+              {qrModal.qrCode}
+            </div>
+            <p className="text-xs text-gray-400">Scan this code with the mobile app</p>
           </div>
         )}
       </Modal>

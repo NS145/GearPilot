@@ -1,3 +1,5 @@
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { trayAPI, assignmentAPI } from '../api';
 import Toast from 'react-native-toast-message';
 
