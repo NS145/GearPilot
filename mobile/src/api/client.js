@@ -1,8 +1,8 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Change this to your server IP when testing on a physical device
-const BASE_URL = 'http://localhost:5000/api';
+// Pointing to your Vercel production backend
+const BASE_URL = 'https://gear-pilot.vercel.app/api';
 
 const api = axios.create({
   baseURL: BASE_URL,
