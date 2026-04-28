@@ -68,7 +68,8 @@ const performSeed = async () => {
             trayId: trays[i]._id,
             vendor: 'Apple',
             ram: '16GB',
-            storage: '512GB SSD'
+            storage: '512GB SSD',
+            purchaseDate: new Date()
         });
         await Tray.findByIdAndUpdate(trays[i]._id, { status: 'occupied' });
     }
