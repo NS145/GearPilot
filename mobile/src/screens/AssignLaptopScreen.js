@@ -8,14 +8,16 @@ export default function AssignLaptopScreen({ navigation, route }) {
   const [employees, setEmployees] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
+  const laptop = route.params?.laptop;
 
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
         const { data: me } = await authAPI.getMe();
         const params = { limit: 100 };
-        if (me.data.role === 'service') {
+        // If we have a specific laptop, we can assign to anyone (direct fulfill/assign)
+        // Otherwise, use role-based filtering
+        if (!laptop && me.data.role === 'service') {
           params.hasPendingRequest = 'true';
         } else {
           params.status = 'active';
@@ -28,7 +30,7 @@ export default function AssignLaptopScreen({ navigation, route }) {
       }
     };
     fetchEmployees();
-  }, []);
+  }, [laptop]);
 
   const handleAssign = async () => {
     if (!selectedEmployee) {
@@ -37,7 +39,10 @@ export default function AssignLaptopScreen({ navigation, route }) {
     }
     setLoading(true);
     try {
-      const { data } = await assignmentAPI.assign({ employeeId: selectedEmployee });
+      const payload = { employeeId: selectedEmployee };
+      if (laptop) payload.laptopId = laptop._id;
+      
+      const { data } = await assignmentAPI.assign(payload);
       setResult(data);
       Toast.show({ type: 'success', text1: 'Laptop assigned!' });
     } catch (err) {
@@ -71,9 +76,17 @@ export default function AssignLaptopScreen({ navigation, route }) {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.infoBox}>
-          💡 The system will auto-select the best available laptop based on priority rules.
-        </Text>
+        {laptop ? (
+          <View style={styles.laptopFocus}>
+            <Text style={styles.focusLabel}>Assigning Laptop</Text>
+            <Text style={styles.focusValue}>{laptop.model}</Text>
+            <Text style={styles.focusSub}>{laptop.serialNumber}</Text>
+          </View>
+        ) : (
+          <Text style={styles.infoBox}>
+            💡 The system will auto-select the best available laptop based on priority rules.
+          </Text>
+        )}
 
         <Text style={styles.label}>Select Employee *</Text>
         <View style={styles.pickerWrapper}>
@@ -95,6 +108,10 @@ export default function AssignLaptopScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc', padding: 16 },
   card: { backgroundColor: '#fff', borderRadius: 16, padding: 16 },
+  laptopFocus: { backgroundColor: '#f1f5f9', borderRadius: 12, padding: 16, marginBottom: 16, alignItems: 'center', borderLeftWidth: 4, borderLeftColor: '#2563eb' },
+  focusLabel: { fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 },
+  focusValue: { fontSize: 18, fontWeight: '800', color: '#1e293b', marginTop: 4 },
+  focusSub: { fontSize: 13, color: '#2563eb', fontWeight: '600', marginTop: 2 },
   infoBox: { backgroundColor: '#eff6ff', borderRadius: 10, padding: 12, fontSize: 13, color: '#1e40af', marginBottom: 16 },
   label: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 6 },
   pickerWrapper: { borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 10, overflow: 'hidden', marginBottom: 20 },

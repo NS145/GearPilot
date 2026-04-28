@@ -14,54 +14,72 @@ const logActivity = require('../utils/activityLogger');
  *
  * Uses a MongoDB session for atomicity to prevent race conditions.
  */
-const assignLaptopToEmployee = async ({ employeeId, assignedBy, notes, ip }) => {
+const assignLaptopToEmployee = async ({ employeeId, laptopId, assignedBy, notes, ip }) => {
   try {
     // Validate employee
     const employee = await Employee.findById(employeeId);
     if (!employee) throw new AppError('Employee not found', 404);
     if (employee.status !== 'active') throw new AppError('Cannot assign laptop to inactive employee', 400);
 
-    // Check if employee already has an active assignment or a pending request
-    const existing = await Assignment.findOne({ employeeId, status: { $in: ['active', 'requested'] } });
-    if (existing) throw new AppError('Employee already has an assigned laptop or a pending request', 400);
+    // Check if employee already has an active assignment
+    const existingActive = await Assignment.findOne({ employeeId, status: 'active' });
+    if (existingActive) throw new AppError('Employee already has an assigned laptop', 400);
 
-    // --- Priority 1: Most recently returned laptop ---
-    let laptop = await Laptop.findOneAndUpdate(
-      {
-        status: 'available',
-        lastReturnedDate: { $ne: null }
-      },
-      { $set: { status: 'reserved' } }, // Reserved for assignment
-      {
-        sort: { lastReturnedDate: -1 }, // Most recent return first
-        new: true
+    let laptop;
+    // Get user role to determine initial status
+    const User = require('../models/User');
+    const user = await User.findById(assignedBy);
+    const initialStatus = user.role === 'admin' ? 'requested' : 'active';
+
+    if (laptopId) {
+      // DIRECT ASSIGN (from QR Scan)
+      laptop = await Laptop.findById(laptopId);
+      if (!laptop) throw new AppError('Laptop not found', 404);
+      if (laptop.status === 'assigned') throw new AppError('This laptop is already assigned to someone else', 400);
+      
+      // If it's already reserved for THIS employee, we are just fulfilling a request
+      const existingRequest = await Assignment.findOne({ employeeId, laptopId, status: 'requested' });
+      if (existingRequest) {
+        return await fulfillAssignment({ laptopId, fulfilledBy: assignedBy, ip });
       }
-    );
+    } else {
+      // SMART ASSIGN LOGIC
+      // Check for pending requests first
+      const pending = await Assignment.findOne({ employeeId, status: 'requested' });
+      if (pending) throw new AppError('Employee already has a pending request. Please fulfill it via QR scan.', 400);
 
-    // --- Priority 2: Oldest purchase date ---
-    if (!laptop) {
+      // Priority 1: Most recently returned
       laptop = await Laptop.findOneAndUpdate(
-        { status: 'available' },
-        { $set: { status: 'reserved' } }, // Reserved for assignment
-        {
-          sort: { purchaseDate: 1 }, // Oldest first
-          new: true
-        }
+        { status: 'available', lastReturnedDate: { $ne: null } },
+        { $set: { status: 'reserved' } }, 
+        { sort: { lastReturnedDate: -1 }, new: true }
       );
+
+      // Priority 2: Oldest purchase date
+      if (!laptop) {
+        laptop = await Laptop.findOneAndUpdate(
+          { status: 'available' },
+          { $set: { status: 'reserved' } }, 
+          { sort: { purchaseDate: 1 }, new: true }
+        );
+      }
     }
 
     if (!laptop) throw new AppError('No available laptops in the warehouse', 404);
 
-    // Create assignment record with 'requested' status
+    // Finalize laptop status
+    laptop.status = initialStatus === 'requested' ? 'reserved' : 'assigned';
+    await laptop.save();
+
+    // Create assignment record
     const assignment = await Assignment.create({
       laptopId: laptop._id,
       employeeId: employee._id,
       assignedBy,
       notes,
-      status: 'requested'
+      status: initialStatus
     });
 
-    const User = require('../models/User'); // require here to avoid circular dep if any
     let employeeUser = await User.findOne({ email: employee.email });
     let employeeCredentials = null;
     if (!employeeUser) {
