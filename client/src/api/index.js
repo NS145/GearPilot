@@ -42,6 +42,7 @@ export const assignmentAPI = {
   getAll: (params) => api.get('/assignment', { params }),
   get: (id) => api.get(`/assignment/${id}`),
   assign: (data) => api.post('/assignment/assign', data),
+  cancelRequest: (id) => api.delete(`/assignment/cancel-request/${id}`),
   return: (data) => api.post('/assignment/return', data)
 };
 

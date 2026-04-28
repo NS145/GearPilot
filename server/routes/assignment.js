@@ -8,6 +8,7 @@ router.get('/', ctrl.getAssignments);
 router.get('/:id', ctrl.getAssignment);
 router.post('/assign', authorize('admin', 'service'), validate(assignSchema), ctrl.assign);
 router.post('/fulfill', authorize('admin', 'service'), ctrl.fulfill);
+router.delete('/cancel-request/:id', authorize('admin'), ctrl.cancelRequest);
 router.post('/return', authorize('admin', 'service'), validate(returnSchema), ctrl.returnLaptop);
 
 module.exports = router;

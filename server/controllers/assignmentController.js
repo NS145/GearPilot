@@ -31,6 +31,17 @@ exports.fulfill = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+exports.cancelRequest = async (req, res, next) => {
+  try {
+    await cancelAssignmentRequest({
+      assignmentId: req.params.id,
+      cancelledBy: req.user._id,
+      ip: req.ip
+    });
+    res.json({ success: true, message: 'Assignment request cancelled' });
+  } catch (err) { next(err); }
+};
+
 exports.returnLaptop = async (req, res, next) => {
   try {
     const result = await returnLaptop({

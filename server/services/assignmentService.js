@@ -178,4 +178,38 @@ const returnLaptop = async ({ assignmentId, returnedBy, notes, ip }) => {
   }
 };
 
-module.exports = { assignLaptopToEmployee, fulfillAssignment, returnLaptop };
+/**
+ * Cancel a pending assignment request — delete record and set laptop back to available
+ */
+const cancelAssignmentRequest = async ({ assignmentId, cancelledBy, ip }) => {
+  try {
+    const assignment = await Assignment.findOne({ _id: assignmentId, status: 'requested' });
+    if (!assignment) throw new AppError('Pending assignment request not found', 404);
+
+    // Set laptop back to available
+    await Laptop.findByIdAndUpdate(assignment.laptopId, { status: 'available' });
+
+    // Delete the assignment record
+    await Assignment.findByIdAndDelete(assignmentId);
+
+    logActivity({
+      userId: cancelledBy,
+      action: 'CANCEL_ASSIGNMENT_REQUEST',
+      entity: 'Assignment',
+      entityId: assignmentId,
+      details: { laptopId: assignment.laptopId },
+      ip
+    });
+
+    return { success: true };
+  } catch (err) {
+    throw err;
+  }
+};
+
+module.exports = { 
+  assignLaptopToEmployee, 
+  fulfillAssignment, 
+  returnLaptop, 
+  cancelAssignmentRequest 
+};

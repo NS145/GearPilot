@@ -4,7 +4,7 @@ import { StatusBadge, LoadingOverlay, Pagination, EmptyState, Modal } from '../.
 import { assignmentAPI, employeeAPI } from '../../api';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
-import { Plus, RotateCcw } from 'lucide-react';
+import { Plus, RotateCcw, XCircle } from 'lucide-react';
 
 export default function AdminAssignments() {
   const [assignments, setAssignments] = useState([]);
@@ -61,12 +61,24 @@ export default function AdminAssignments() {
     } finally { setSaving(false); }
   };
 
+  const handleCancelRequest = async (id) => {
+    if (!window.confirm('Cancel this assignment request?')) return;
+    try {
+      await assignmentAPI.cancelRequest(id);
+      toast.success('Request cancelled');
+      fetchAssignments();
+    } catch (err) {
+      toast.error('Failed to cancel request');
+    }
+  };
+
   return (
     <Layout title="Assignments">
       <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
         <select className="input w-40" value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setPage(1); }}>
           <option value="">All</option>
           <option value="active">Active</option>
+          <option value="requested">Requested</option>
           <option value="returned">Returned</option>
         </select>
         <button onClick={() => setAssignModal(true)} className="btn-primary flex items-center gap-2">
@@ -96,6 +108,11 @@ export default function AdminAssignments() {
                     <td style={{ color: '#64748b' }}>{a.returnedDate ? format(new Date(a.returnedDate), 'dd MMM yyyy') : '—'}</td>
                     <td><StatusBadge status={a.status} /></td>
                     <td>
+                      {a.status === 'requested' && (
+                        <button onClick={() => handleCancelRequest(a._id)} className="btn-icon" title="Cancel Request" style={{ color: '#ef4444', background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                          <XCircle className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                       {a.status === 'active' && (
                         <button onClick={() => { setSelectedAssignment(a); setReturnModal(true); }} className="btn-icon" title="Return Laptop" style={{ color: '#f59e0b', background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)' }}>
                           <RotateCcw className="w-3.5 h-3.5" />
