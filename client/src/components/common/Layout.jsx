@@ -18,7 +18,6 @@ const adminNav = [
 const serviceNav = [
   { path:'/service',            label:'Dashboard',   Icon:LayoutDashboard },
   { path:'/service/trays',      label:'Tray View',   Icon:Grid },
-  { path:'/service/assign',     label:'Assign',      Icon:ClipboardList },
   { path:'/settings',           label:'Settings',    Icon:SettingsIcon },
 ];
 const employeeNav = [

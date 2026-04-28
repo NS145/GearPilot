@@ -59,14 +59,13 @@ export default function DashboardScreen({ navigation }) {
 
       <View style={styles.actions}>
         <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('QRScanner')}>
-          <Text style={styles.actionIcon}>📷</Text>
-          <Text style={styles.actionTitle}>Scan QR</Text>
-          <Text style={styles.actionSub}>Scan tray QR code</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.actionCard, { backgroundColor: '#7c3aed' }]} onPress={() => navigation.navigate('AssignLaptop')}>
-          <Text style={styles.actionIcon}>🔗</Text>
-          <Text style={styles.actionTitle}>Assign</Text>
-          <Text style={styles.actionSub}>New request</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+            <Text style={styles.actionIcon}>📷</Text>
+            <View>
+              <Text style={styles.actionTitle}>Scan Tray QR</Text>
+              <Text style={styles.actionSub}>Quick fulfill via physical scan</Text>
+            </View>
+          </View>
         </TouchableOpacity>
       </View>
 
