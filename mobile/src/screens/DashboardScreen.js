@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, RefreshControl } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { assignmentAPI } from '../api';
 import { useFocusEffect } from '@react-navigation/native';
@@ -9,6 +9,7 @@ export default function DashboardScreen({ navigation }) {
   const [pending, setPending] = useState([]);
   const [active, setActive] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [processingId, setProcessingId] = useState(null);
 
   const fetchData = async () => {
@@ -23,8 +24,14 @@ export default function DashboardScreen({ navigation }) {
       console.error(err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchData();
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -46,15 +53,25 @@ export default function DashboardScreen({ navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#2563eb']} />
+      }
+    >
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>Hello, {user?.name} 👋</Text>
           <Text style={styles.role}>{user?.role} team</Text>
         </View>
-        <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
-          <Text style={styles.logoutText}>Logout</Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity onPress={onRefresh} style={styles.reloadBtn}>
+            <Text style={styles.logoutText}>🔄 Reload</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
+            <Text style={styles.logoutText}>Logout</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.actions}>
@@ -120,7 +137,8 @@ const styles = StyleSheet.create({
   greeting: { fontSize: 20, fontWeight: 'bold', color: '#fff' },
   role: { fontSize: 13, color: '#93c5fd', marginTop: 2, textTransform: 'capitalize' },
   logoutBtn: { backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 },
-  logoutText: { color: '#fff', fontSize: 13 },
+  reloadBtn: { backgroundColor: '#10b981', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 },
+  logoutText: { color: '#fff', fontSize: 13, fontWeight: '700' },
   actions: { flexDirection: 'row', gap: 12, padding: 16 },
   actionCard: { flex: 1, backgroundColor: '#2563eb', borderRadius: 16, padding: 20, alignItems: 'center' },
   actionIcon: { fontSize: 32, marginBottom: 8 },

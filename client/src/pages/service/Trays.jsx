@@ -188,11 +188,53 @@ export default function WarehouseVisualizer() {
               </div>
             )}
 
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setDetailTray(null)}
+                className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+              >
+                Close
+              </button>
+              <button 
+                onClick={() => { setShowQR(detailTray); setDetailTray(null); }}
+                className="flex-1 bg-gray-900 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-black transition-colors"
+              >
+                <QrIcon className="w-4 h-4" /> View QR
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* QR PREVIEW MODAL */}
+      <Modal 
+        isOpen={!!showQR} 
+        onClose={() => setShowQR(null)} 
+        title="Tray QR Label"
+        size="sm"
+      >
+        {showQR && (
+          <div className="flex flex-col items-center gap-6 py-4">
+            <div className="p-6 bg-white rounded-3xl shadow-2xl border-4 border-gray-900">
+              <QRCode 
+                id="qr-gen"
+                value={showQR.qrCode} 
+                size={200} 
+                level="H" 
+                includeMargin={true} 
+              />
+              <div className="mt-4 text-center">
+                <div className="text-xs font-black text-gray-400 uppercase tracking-widest">Tray ID</div>
+                <div className="text-xl font-black text-gray-900">T-{showQR.trayNumber}</div>
+                <div className="text-[10px] font-bold text-blue-500 uppercase">Rack #{selectedRack?.rackNumber}</div>
+              </div>
+            </div>
+            
             <button 
-              onClick={() => setDetailTray(null)}
-              className="w-full btn-primary py-4 rounded-2xl font-bold tracking-tight shadow-xl shadow-blue-100"
+              onClick={downloadQR}
+              className="w-full bg-blue-600 text-white py-4 rounded-2xl flex items-center justify-center gap-3 shadow-xl shadow-blue-100 hover:bg-blue-700 transition-colors"
             >
-              Close Visualizer
+              <Download className="w-5 h-5" /> Download Labeled QR
             </button>
           </div>
         )}
