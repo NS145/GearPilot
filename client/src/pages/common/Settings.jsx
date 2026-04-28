@@ -11,7 +11,6 @@ export default function Settings() {
   // States
   const [profilePhoto, setProfilePhoto] = useState(user?.avatarUrl || '');
   const [name, setName] = useState(user?.name || '');
-  const [notifications, setNotifications] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -49,10 +48,7 @@ export default function Settings() {
     }
   };
 
-  const handleSavePreferences = (e) => {
-    e.preventDefault();
-    toast.success('Preferences saved!');
-  };
+
 
   return (
     <Layout title="Settings">
@@ -99,33 +95,6 @@ export default function Settings() {
             
             <div className="flex justify-end">
               <button type="submit" disabled={saving} className="btn-primary px-6">{saving ? 'Saving...' : 'Save Profile'}</button>
-            </div>
-          </form>
-        </div>
-
-        {/* Preferences */}
-        <div className="card">
-          <div className="mb-6 border-b pb-4">
-            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2"><Monitor className="w-5 h-5 text-blue-500" /> Preferences</h2>
-            <p className="text-sm text-gray-500">Customize your visual and functional experience.</p>
-          </div>
-
-          <form onSubmit={handleSavePreferences} className="space-y-6">
-
-
-            <div>
-              <label className="text-sm font-medium mb-3 block flex items-center gap-2"><Bell className="w-4 h-4 text-gray-400" /> Notifications</label>
-              <label className="flex items-center gap-3 cursor-pointer">
-                <div className={`relative w-10 h-5 rounded-full transition-colors ${notifications ? 'bg-red-500' : 'bg-gray-200'}`}>
-                  <div className={`absolute top-0.5 left-0.5 bg-white w-4 h-4 rounded-full transition-transform ${notifications ? 'translate-x-5' : 'translate-x-0'}`} />
-                </div>
-                <input type="checkbox" className="hidden" checked={notifications} onChange={() => setNotifications(!notifications)} />
-                <span className="text-sm text-gray-700">Enable email and dashboard notifications</span>
-              </label>
-            </div>
-
-            <div className="flex justify-end border-t pt-4">
-              <button type="submit" className="btn-secondary px-6">Save Preferences</button>
             </div>
           </form>
         </div>
