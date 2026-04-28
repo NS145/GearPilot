@@ -70,7 +70,6 @@ export default function Layout({ children, title }) {
         <div className="relative flex items-center gap-3 px-5 py-5" style={{ borderBottom:'1px solid rgba(137,113,100,.15)' }}>
           <Link to="/" className="text-left w-full focus:outline-none flex-1 hover:opacity-80 transition-opacity block">
             <div style={{ fontSize:16, fontWeight:800, color:'#1c1c1e', letterSpacing:'-0.3px' }} className="dark:text-white">GearPilot</div>
-            <div style={{ fontSize:9, color:'#8e8e93', letterSpacing:'1.5px', textTransform:'uppercase' }}>Tracking System</div>
           </Link>
         </div>
 
@@ -114,7 +113,6 @@ export default function Layout({ children, title }) {
             <button className="lg:hidden" onClick={()=>setOpen(true)} style={{ background:'none', border:'none', color:'#7a7588', cursor:'pointer' }}><Menu className="w-5 h-5"/></button>
             <div>
               <div style={{ fontSize:17, fontWeight:700, color:'#1c1c1e' }}>{title}</div>
-              <div style={{ fontSize:9, color:'#8e8e93', letterSpacing:'2px', textTransform:'uppercase' }}>GearPilot — Laptop Tracking System</div>
             </div>
           </div>
           <div className="flex items-center gap-3">
