@@ -21,9 +21,9 @@ const assignLaptopToEmployee = async ({ employeeId, assignedBy, notes, ip }) => 
     if (!employee) throw new AppError('Employee not found', 404);
     if (employee.status !== 'active') throw new AppError('Cannot assign laptop to inactive employee', 400);
 
-    // Check if employee already has an active assignment
-    const existing = await Assignment.findOne({ employeeId, status: 'active' });
-    if (existing) throw new AppError('Employee already has an assigned laptop', 400);
+    // Check if employee already has an active assignment or a pending request
+    const existing = await Assignment.findOne({ employeeId, status: { $in: ['active', 'requested'] } });
+    if (existing) throw new AppError('Employee already has an assigned laptop or a pending request', 400);
 
     // --- Priority 1: Most recently returned laptop ---
     let laptop = await Laptop.findOneAndUpdate(
