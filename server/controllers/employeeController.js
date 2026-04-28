@@ -1,4 +1,6 @@
 const Employee = require('../models/Employee');
+const Assignment = require('../models/Assignment');
+const User = require('../models/User');
 const AppError = require('../utils/AppError');
 const logActivity = require('../utils/activityLogger');
 const { getPagination, paginateResponse } = require('../utils/pagination');
@@ -8,7 +10,6 @@ exports.createEmployee = async (req, res, next) => {
     const employee = await Employee.create(req.body);
     
     // Create corresponding user account automatically
-    const User = require('../models/User');
     const existingUser = await User.findOne({ email: employee.email });
     if (!existingUser) {
       const initPassword = req.body.plainPassword || (employee.name.replace(/\s+/g, '').toLowerCase() + '@123');
@@ -36,16 +37,20 @@ exports.getAllEmployees = async (req, res, next) => {
     const { page, limit, skip } = getPagination(req.query);
     const filter = {};
     if (req.query.status) filter.status = req.query.status;
+    let idFilters = [];
     if (req.query.hasPendingRequest === 'true') {
-      const Assignment = require('../models/Assignment');
       const pendingRequests = await Assignment.find({ status: 'requested' }).distinct('employeeId');
-      filter._id = { $in: pendingRequests };
+      idFilters.push({ _id: { $in: pendingRequests } });
     }
     if (req.query.availableOnly === 'true') {
-      const Assignment = require('../models/Assignment');
       const occupied = await Assignment.find({ status: { $in: ['active', 'requested'] } }).distinct('employeeId');
-      filter._id = { $nin: occupied };
+      idFilters.push({ _id: { $nin: occupied } });
     }
+
+    if (idFilters.length > 0) {
+      filter.$and = idFilters;
+    }
+
     if (req.query.department) filter.department = { $regex: req.query.department, $options: 'i' };
     if (req.query.search) {
       filter.$or = [
@@ -79,7 +84,6 @@ exports.updateEmployee = async (req, res, next) => {
 
     // If plain password was provided, also sync it to their User account
     if (req.body.plainPassword) {
-      const User = require('../models/User');
       const employeeUser = await User.findOne({ email: employee.email });
       if (employeeUser) {
         employeeUser.password = req.body.plainPassword;

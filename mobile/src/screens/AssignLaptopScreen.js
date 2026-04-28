@@ -28,7 +28,11 @@ export default function AssignLaptopScreen({ navigation, route }) {
         setEmployees(empData.data);
         if (empData.data.length) setSelectedEmployee(empData.data[0]._id);
       } catch (err) {
-        Toast.show({ type: 'error', text1: 'Failed to load employees' });
+        Toast.show({ 
+          type: 'error', 
+          text1: 'Failed to load employees', 
+          text2: err.response?.data?.message || err.message 
+        });
       }
     };
     fetchEmployees();
