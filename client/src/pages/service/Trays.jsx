@@ -1,192 +1,209 @@
-import React, { useState, useEffect, useCallback } from 'react';
+// Warehouse Visualizer (Service Tray View)
+import React, { useState, useEffect } from 'react';
 import Layout from '../../components/common/Layout';
-import { StatusBadge, LoadingOverlay, Pagination, EmptyState, Modal } from '../../components/common';
-import { trayAPI, laptopAPI } from '../../api';
+import { rackAPI, trayAPI } from '../../api';
+import { Spinner, StatusBadge, Modal } from '../../components/common';
+import { Server, Grid, Monitor, User, Info, ArrowRightCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { Search, QrCode, Download } from 'lucide-react';
-import { QRCodeCanvas } from 'qrcode.react';
 
-export default function ServiceTrays() {
+export default function WarehouseVisualizer() {
+  const [racks, setRacks] = useState([]);
+  const [selectedRack, setSelectedRack] = useState(null);
   const [trays, setTrays] = useState([]);
-  const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [selectedTray, setSelectedTray] = useState(null);
-  const [trayDetail, setTrayDetail] = useState(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [addLaptopForm, setAddLaptopForm] = useState({ model: '', ram: '', storage: '', serialNumber: '', purchaseDate: '', vendor: '' });
-  const [addingLaptop, setAddingLaptop] = useState(false);
-  const [qrModal, setQrModal] = useState(null);
+  const [loadingTrays, setLoadingTrays] = useState(false);
+  const [detailTray, setDetailTray] = useState(null);
 
-  const fetchTrays = useCallback(async () => {
-    setLoading(true);
+  useEffect(() => {
+    fetchRacks();
+  }, []);
+
+  const fetchRacks = async () => {
     try {
-      const { data } = await trayAPI.getAll({ page, limit: 20 });
-      setTrays(data.data);
-      setPagination(data.pagination);
+      const { data } = await rackAPI.getAll({ limit: 50 });
+      setRacks(data.data);
+      if (data.data.length > 0) handleRackSelect(data.data[0]);
+    } catch (err) {
+      toast.error('Failed to load racks');
     } finally { setLoading(false); }
-  }, [page]);
-
-  useEffect(() => { fetchTrays(); }, [fetchTrays]);
-
-  const openTray = async (tray) => {
-    setSelectedTray(tray);
-    setDetailLoading(true);
-    const { data } = await trayAPI.get(tray._id);
-    setTrayDetail(data.data);
-    setDetailLoading(false);
   };
 
-  const handleAddLaptop = async (e) => {
-    e.preventDefault();
-    setAddingLaptop(true);
+  const handleRackSelect = async (rack) => {
+    setSelectedRack(rack);
+    setLoadingTrays(true);
     try {
-      await laptopAPI.create({ ...addLaptopForm, trayId: selectedTray._id });
-      toast.success('Laptop added to tray');
-      setSelectedTray(null);
-      fetchTrays();
-    } finally { setAddingLaptop(false); }
+      const { data } = await trayAPI.getAll({ rackId: rack._id, limit: 100 });
+      // Sort trays by trayNumber
+      const sorted = data.data.sort((a, b) => a.trayNumber - b.trayNumber);
+      setTrays(sorted);
+    } catch (err) {
+      toast.error('Failed to load trays');
+    } finally { setLoadingTrays(false); }
   };
 
-  const downloadQR = (t) => {
-    const canvas = document.getElementById(`qr-modal-canvas`);
-    if (!canvas) return;
-    
-    const finalCanvas = document.createElement('canvas');
-    const ctx = finalCanvas.getContext('2d');
-    finalCanvas.width = 300;
-    finalCanvas.height = 360;
-    
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
-    ctx.drawImage(canvas, 25, 20, 250, 250);
-    
-    ctx.fillStyle = '#000000';
-    ctx.textAlign = 'center';
-    ctx.font = 'bold 22px Inter, sans-serif';
-    ctx.fillText(`TRAY: ${t.trayNumber}`, 150, 300);
-    
-    ctx.font = '16px Inter, sans-serif';
-    ctx.fillStyle = '#666666';
-    ctx.fillText(`RACK: ${t.rackId?.rackNumber || 'N/A'}`, 150, 330);
-    
-    const pngUrl = finalCanvas.toDataURL("image/png");
-    const downloadLink = document.createElement("a");
-    downloadLink.href = pngUrl;
-    downloadLink.download = `QR_Tray_${t.trayNumber}.png`;
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-    toast.success(`Downloading QR for ${t.trayNumber}`);
+  const getTrayColor = (tray) => {
+    if (!tray.laptop) return '#e2e8f0'; // Empty - Grey
+    if (tray.laptop.status === 'assigned') return '#3b82f6'; // Assigned - Blue
+    if (tray.laptop.status === 'reserved') return '#f59e0b'; // Requested - Yellow
+    return '#10b981'; // Available - Green
   };
 
   return (
-    <Layout title="Tray View">
-      <div className="card overflow-hidden p-0">
-        <div className="overflow-x-auto">
-          {loading ? <LoadingOverlay /> : trays.length === 0 ? <EmptyState /> : (
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b">
-                <tr>{['Tray #', 'Rack', 'Status', 'Action'].map(h => <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">{h}</th>)}</tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {trays.map(t => (
-                  <tr key={t._id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-semibold">{t.trayNumber}</td>
-                    <td className="px-4 py-3">{t.rackId?.rackNumber}</td>
-                    <td className="px-4 py-3"><StatusBadge status={t.status} /></td>
-                    <td className="px-4 py-3 flex gap-2">
-                      <button onClick={() => openTray(t)} className="text-xs btn-secondary py-1 px-3">View</button>
-                      <button onClick={() => setQrModal(t)} className="text-xs flex items-center gap-1 text-purple-600 hover:text-purple-800 font-medium">
-                        <QrCode className="w-3.5 h-3.5" /> QR
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+    <Layout title="Warehouse Visualizer">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-180px)]">
+        
+        {/* RACK SELECTOR (Left Sidebar) */}
+        <div className="lg:col-span-1 space-y-4 overflow-y-auto pr-2 custom-scrollbar">
+          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">Physical Racks</div>
+          {loading ? <Spinner /> : racks.map(rack => (
+            <button
+              key={rack._id}
+              onClick={() => handleRackSelect(rack)}
+              className={`w-full text-left p-4 rounded-2xl transition-all border-2 flex items-center gap-4 ${
+                selectedRack?._id === rack._id 
+                ? 'bg-white border-blue-500 shadow-lg shadow-blue-100' 
+                : 'bg-gray-50 border-transparent hover:bg-white hover:border-gray-200'
+              }`}
+            >
+              <div className={`p-2.5 rounded-xl ${selectedRack?._id === rack._id ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                <Server className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="font-bold text-gray-800">Rack #{rack.rackNumber}</div>
+                <div className="text-xs text-gray-500">{rack.location}</div>
+              </div>
+              <ArrowRightCircle className={`ml-auto w-4 h-4 ${selectedRack?._id === rack._id ? 'text-blue-500' : 'text-transparent'}`} />
+            </button>
+          ))}
         </div>
-        {pagination && <div className="px-6 py-4 border-t">{/* Pagination placeholder */}</div>}
-      </div>
 
-      {/* ... existing modals ... */}
-      
-      <Modal isOpen={!!selectedTray} onClose={() => setSelectedTray(null)} title={`Tray ${selectedTray?.trayNumber}`} size="lg">
-        {detailLoading ? <div className="py-8 text-center text-gray-400">Loading...</div> : trayDetail && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="text-xs text-gray-500">Rack</div>
-                <div className="font-semibold">{trayDetail.rackId?.rackNumber}</div>
-              </div>
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="text-xs text-gray-500">Status</div>
-                <StatusBadge status={trayDetail.status} />
-              </div>
-            </div>
-
-            {trayDetail.laptop ? (
-              <div className="border rounded-lg p-4 space-y-2 text-sm">
-                <h3 className="font-semibold text-gray-800">Laptop in this tray</h3>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  {[['Model', trayDetail.laptop.model], ['RAM', trayDetail.laptop.ram], ['Storage', trayDetail.laptop.storage], ['Serial #', trayDetail.laptop.serialNumber], ['Vendor', trayDetail.laptop.vendor], ['Status', trayDetail.laptop.status]].map(([k, v]) => (
-                    <div key={k}><span className="text-gray-500">{k}:</span> <span className="font-medium">{v}</span></div>
-                  ))}
+        {/* TRAY GRID VISUALIZER (Main Content) */}
+        <div className="lg:col-span-3 bg-white rounded-[32px] p-8 border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+          {selectedRack ? (
+            <>
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h2 className="text-2xl font-black text-gray-800 tracking-tight">Rack {selectedRack.rackNumber}</h2>
+                  <p className="text-sm text-gray-500 font-medium">Shelf Visualization • {trays.length} Trays Total</p>
+                </div>
+                
+                {/* LEGEND */}
+                <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                  <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-green-500" /> Ready</div>
+                  <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-blue-500" /> Out</div>
+                  <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Pending</div>
+                  <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-gray-300" /> Empty</div>
                 </div>
               </div>
-            ) : (
-              <div>
-                <h3 className="font-semibold text-gray-800 mb-3">Add Laptop to this Tray</h3>
-                <form onSubmit={handleAddLaptop} className="grid grid-cols-2 gap-3 text-sm">
-                  {[['Model', 'model', 'text'], ['Serial #', 'serialNumber', 'text'], ['RAM', 'ram', 'text'], ['Storage', 'storage', 'text'], ['Vendor', 'vendor', 'text'], ['Purchase Date', 'purchaseDate', 'date']].map(([label, key, type]) => (
-                    <div key={key}>
-                      <label className="block text-xs font-medium mb-1">{label} *</label>
-                      <input className="input text-xs" type={type} value={addLaptopForm[key]} onChange={e => setAddLaptopForm(p => ({ ...p, [key]: e.target.value }))} required />
-                    </div>
-                  ))}
-                  <div className="col-span-2">
-                    <button type="submit" disabled={addingLaptop} className="btn-primary w-full">
-                      {addingLaptop ? 'Adding...' : 'Add Laptop'}
-                    </button>
+
+              {loadingTrays ? (
+                <div className="flex-1 flex items-center justify-center"><Spinner size="lg" /></div>
+              ) : (
+                <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar">
+                  {/* GRAPHIC SHELF GRID */}
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-6 p-2">
+                    {trays.map(tray => (
+                      <button
+                        key={tray._id}
+                        onClick={() => setDetailTray(tray)}
+                        className="group relative aspect-[4/3] rounded-2xl border-b-8 border-gray-100 transition-all hover:-translate-y-1 hover:shadow-xl flex flex-col items-center justify-center gap-2"
+                        style={{ backgroundColor: `${getTrayColor(tray)}15`, borderColor: `${getTrayColor(tray)}30` }}
+                      >
+                        {/* Tray Number Badge */}
+                        <div className="absolute top-2 left-2 bg-white/80 backdrop-blur-sm px-2 py-0.5 rounded-lg text-[9px] font-black text-gray-500 shadow-sm border border-gray-100">
+                          T-{tray.trayNumber}
+                        </div>
+
+                        {/* Status Icon */}
+                        <div className="w-12 h-12 rounded-full flex items-center justify-center transition-transform group-hover:scale-110" style={{ backgroundColor: getTrayColor(tray) }}>
+                          <Monitor className="w-6 h-6 text-white" />
+                        </div>
+
+                        <div className="text-[11px] font-bold text-gray-700">
+                          {tray.laptop ? tray.laptop.model : 'Empty'}
+                        </div>
+                      </button>
+                    ))}
                   </div>
-                </form>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 text-gray-400">
+              <Server className="w-12 h-12 opacity-20" />
+              <p className="font-medium">Select a rack to view shelf layout</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* TRAY DETAIL MODAL */}
+      <Modal 
+        isOpen={!!detailTray} 
+        onClose={() => setDetailTray(null)} 
+        title={`Tray Detail: T-${detailTray?.trayNumber}`}
+        size="md"
+      >
+        {detailTray && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
+              <div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase">Current Status</div>
+                <StatusBadge status={detailTray.laptop ? detailTray.laptop.status : 'free'} />
+              </div>
+              <div className="text-right">
+                <div className="text-[10px] font-bold text-gray-400 uppercase">Hardware ID</div>
+                <div className="font-mono text-xs font-bold text-gray-700">{detailTray.laptop?.serialNumber || 'N/A'}</div>
+              </div>
+            </div>
+
+            {detailTray.laptop ? (
+              <div className="space-y-4">
+                <div className="flex items-center gap-4 p-4 border border-gray-100 rounded-2xl bg-white shadow-sm">
+                  <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center">
+                    <Monitor className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="font-black text-gray-800">{detailTray.laptop.model}</div>
+                    <div className="text-xs text-gray-500">{detailTray.laptop.ram} / {detailTray.laptop.storage}</div>
+                  </div>
+                </div>
+
+                {detailTray.laptop.status === 'assigned' && (
+                  <div className="p-4 bg-blue-50 rounded-2xl flex items-center gap-4 border border-blue-100">
+                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
+                      <User className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold text-blue-400 uppercase">Assigned To</div>
+                      <div className="font-bold text-blue-900">Current Employee Info In Sidebar</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="text-4xl mb-2">📥</div>
+                <p className="text-sm font-medium text-gray-500">This tray is currently empty and available for new stock.</p>
               </div>
             )}
+
+            <button 
+              onClick={() => setDetailTray(null)}
+              className="w-full btn-primary py-4 rounded-2xl font-bold tracking-tight shadow-xl shadow-blue-100"
+            >
+              Close Visualizer
+            </button>
           </div>
         )}
       </Modal>
 
-      <Modal isOpen={!!qrModal} onClose={() => setQrModal(null)} title="Tray QR Code" size="sm">
-        {qrModal && (
-          <div className="text-center space-y-5 py-2">
-            <div className="flex flex-col items-center">
-              <div className="bg-white p-3 rounded-2xl shadow-sm border mb-4">
-                <QRCodeCanvas 
-                  id="qr-modal-canvas"
-                  value={qrModal._id} 
-                  size={200} 
-                  level="H" 
-                  includeMargin={true} 
-                />
-              </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-gray-900">Tray {qrModal.trayNumber}</div>
-                <div className="text-sm text-gray-500 uppercase tracking-widest">{qrModal.rackId?.rackNumber}</div>
-              </div>
-            </div>
-            
-            <button 
-              onClick={() => downloadQR(qrModal)}
-              className="btn-primary w-full flex items-center justify-center gap-2 py-3"
-            >
-              <Download className="w-4 h-4" /> Download QR Label
-            </button>
-            <p className="text-[10px] text-gray-400">Scan this code with the mobile app for instant tray identification</p>
-          </div>
-        )}
-      </Modal>
+      <style dangerouslySetInnerHTML={{ __html: `
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+      `}} />
     </Layout>
   );
 }
