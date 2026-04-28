@@ -70,13 +70,19 @@ exports.getAllEmployees = async (req, res, next) => {
     const activeAssignments = await Assignment.find({ 
       employeeId: { $in: employeeIds }, 
       status: { $in: ['active', 'requested'] } 
-    }).lean();
+    }).populate('laptopId').lean();
 
-    const enrichedEmployees = employees.map(emp => ({
-      ...emp,
-      hasLaptop: activeAssignments.some(a => a.employeeId.toString() === emp._id.toString() && a.status === 'active'),
-      hasPending: activeAssignments.some(a => a.employeeId.toString() === emp._id.toString() && a.status === 'requested')
-    }));
+    const enrichedEmployees = employees.map(emp => {
+      const active = activeAssignments.find(a => a.employeeId.toString() === emp._id.toString() && a.status === 'active');
+      const pending = activeAssignments.find(a => a.employeeId.toString() === emp._id.toString() && a.status === 'requested');
+      
+      return {
+        ...emp,
+        hasLaptop: !!active,
+        hasPending: !!pending,
+        laptopInfo: active ? `${active.laptopId?.model} (${active.laptopId?.serialNumber})` : null
+      };
+    });
 
     res.json({ success: true, ...paginateResponse(enrichedEmployees, total, page, limit) });
   } catch (err) { next(err); }

@@ -81,9 +81,12 @@ export default function AdminEmployees() {
                     <td className="px-4 py-3"><StatusBadge status={emp.status} /></td>
                     <td className="px-4 py-3">
                       {emp.hasLaptop ? (
-                        <span className="flex items-center gap-1.5 text-green-600 font-semibold text-xs whitespace-nowrap">
-                          <CheckCircle className="w-3.5 h-3.5" /> Has Laptop
-                        </span>
+                        <div className="flex flex-col">
+                          <span className="flex items-center gap-1.5 text-green-600 font-semibold text-xs whitespace-nowrap">
+                            <CheckCircle className="w-3.5 h-3.5" /> Has Laptop
+                          </span>
+                          <span className="text-[10px] text-gray-500 font-mono mt-1">{emp.laptopInfo}</span>
+                        </div>
                       ) : emp.hasPending ? (
                         <span className="flex items-center gap-1.5 text-orange-500 font-semibold text-xs whitespace-nowrap">
                           <Clock className="w-3.5 h-3.5" /> Requested

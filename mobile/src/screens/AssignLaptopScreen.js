@@ -97,9 +97,17 @@ export default function AssignLaptopScreen({ navigation, route }) {
 
         <Text style={styles.label}>Select Employee *</Text>
         <View style={styles.pickerWrapper}>
-          <Picker selectedValue={selectedEmployee} onValueChange={setSelectedEmployee} style={styles.picker}>
+          <Picker
+            selectedValue={selectedEmployee}
+            onValueChange={(itemValue) => setSelectedEmployee(itemValue)}
+            style={styles.picker}
+          >
             {employees.map(emp => (
-              <Picker.Item key={emp._id} label={`${emp.name} (${emp.employeeId})`} value={emp._id} />
+              <Picker.Item 
+                key={emp._id} 
+                label={`${emp.name}${emp.hasLaptop ? ' (Has Laptop)' : emp.hasPending ? ' (Requested)' : ''}`} 
+                value={emp._id} 
+              />
             ))}
           </Picker>
         </View>
