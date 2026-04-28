@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { assignmentAPI, employeeAPI, authAPI } from '../api';
+import { useAuth } from '../context/AuthContext';
 import Toast from 'react-native-toast-message';
 
 export default function AssignLaptopScreen({ navigation, route }) {
+  const { user: me } = useAuth();
   const [employees, setEmployees] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [loading, setLoading] = useState(false);
@@ -14,11 +16,10 @@ export default function AssignLaptopScreen({ navigation, route }) {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const { data: me } = await authAPI.getMe();
         const params = { limit: 100 };
         // If we have a specific laptop, we can assign to anyone (direct fulfill/assign)
         // Otherwise, use role-based filtering
-        if (!laptop && me.data.role === 'service') {
+        if (!laptop && me?.role === 'service') {
           params.hasPendingRequest = 'true';
         } else {
           params.status = 'active';
