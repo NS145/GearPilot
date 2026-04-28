@@ -4,7 +4,7 @@ import Layout from '../../components/common/Layout';
 import { Modal, StatusBadge, LoadingOverlay, Pagination, EmptyState, ConfirmDialog } from '../../components/common';
 import { employeeAPI } from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, CheckCircle, Clock } from 'lucide-react';
 
 const INIT = { employeeId: '', name: '', email: '', department: '', status: 'active', plainPassword: '' };
 
@@ -69,7 +69,7 @@ export default function AdminEmployees() {
           {loading ? <LoadingOverlay /> : employees.length === 0 ? <EmptyState /> : (
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
-                <tr>{['ID', 'Name', 'Email', 'Department', 'Status', 'Actions'].map(h => <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">{h}</th>)}</tr>
+                <tr>{['ID', 'Name', 'Email', 'Department', 'Status', 'Asset', 'Actions'].map(h => <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">{h}</th>)}</tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {employees.map(emp => (
@@ -79,6 +79,19 @@ export default function AdminEmployees() {
                     <td className="px-4 py-3 text-gray-500">{emp.email}</td>
                     <td className="px-4 py-3">{emp.department}</td>
                     <td className="px-4 py-3"><StatusBadge status={emp.status} /></td>
+                    <td className="px-4 py-3">
+                      {emp.hasLaptop ? (
+                        <span className="flex items-center gap-1.5 text-green-600 font-semibold text-xs whitespace-nowrap">
+                          <CheckCircle className="w-3.5 h-3.5" /> Has Laptop
+                        </span>
+                      ) : emp.hasPending ? (
+                        <span className="flex items-center gap-1.5 text-orange-500 font-semibold text-xs whitespace-nowrap">
+                          <Clock className="w-3.5 h-3.5" /> Requested
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 text-xs italic">No Asset</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 flex gap-2">
                       <button onClick={() => openEdit(emp)} className="text-blue-600 p-1"><Pencil className="w-4 h-4" /></button>
                       <button onClick={() => setDeleteTarget(emp)} className="text-red-500 p-1"><Trash2 className="w-4 h-4" /></button>

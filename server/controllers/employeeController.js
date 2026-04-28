@@ -61,11 +61,24 @@ exports.getAllEmployees = async (req, res, next) => {
     }
 
     const [employees, total] = await Promise.all([
-      Employee.find(filter).sort({ name: 1 }).skip(skip).limit(limit),
+      Employee.find(filter).sort({ name: 1 }).skip(skip).limit(limit).lean(),
       Employee.countDocuments(filter)
     ]);
 
-    res.json({ success: true, ...paginateResponse(employees, total, page, limit) });
+    // Attach active assignment info
+    const employeeIds = employees.map(e => e._id);
+    const activeAssignments = await Assignment.find({ 
+      employeeId: { $in: employeeIds }, 
+      status: { $in: ['active', 'requested'] } 
+    }).lean();
+
+    const enrichedEmployees = employees.map(emp => ({
+      ...emp,
+      hasLaptop: activeAssignments.some(a => a.employeeId.toString() === emp._id.toString() && a.status === 'active'),
+      hasPending: activeAssignments.some(a => a.employeeId.toString() === emp._id.toString() && a.status === 'requested')
+    }));
+
+    res.json({ success: true, ...paginateResponse(enrichedEmployees, total, page, limit) });
   } catch (err) { next(err); }
 };
 
