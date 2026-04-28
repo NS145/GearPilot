@@ -3,7 +3,8 @@ import Layout from '../../components/common/Layout';
 import { StatusBadge, LoadingOverlay, Pagination, EmptyState, Modal } from '../../components/common';
 import { trayAPI, laptopAPI } from '../../api';
 import toast from 'react-hot-toast';
-import { Search, QrCode } from 'lucide-react';
+import { Search, QrCode, Download } from 'lucide-react';
+import { QRCodeCanvas } from 'qrcode.react';
 
 export default function ServiceTrays() {
   const [trays, setTrays] = useState([]);
@@ -48,6 +49,38 @@ export default function ServiceTrays() {
     } finally { setAddingLaptop(false); }
   };
 
+  const downloadQR = (t) => {
+    const canvas = document.getElementById(`qr-modal-canvas`);
+    if (!canvas) return;
+    
+    const finalCanvas = document.createElement('canvas');
+    const ctx = finalCanvas.getContext('2d');
+    finalCanvas.width = 300;
+    finalCanvas.height = 360;
+    
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+    ctx.drawImage(canvas, 25, 20, 250, 250);
+    
+    ctx.fillStyle = '#000000';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 22px Inter, sans-serif';
+    ctx.fillText(`TRAY: ${t.trayNumber}`, 150, 300);
+    
+    ctx.font = '16px Inter, sans-serif';
+    ctx.fillStyle = '#666666';
+    ctx.fillText(`RACK: ${t.rackId?.rackNumber || 'N/A'}`, 150, 330);
+    
+    const pngUrl = finalCanvas.toDataURL("image/png");
+    const downloadLink = document.createElement("a");
+    downloadLink.href = pngUrl;
+    downloadLink.download = `QR_Tray_${t.trayNumber}.png`;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    toast.success(`Downloading QR for ${t.trayNumber}`);
+  };
+
   return (
     <Layout title="Tray View">
       <div className="card overflow-hidden p-0">
@@ -75,9 +108,11 @@ export default function ServiceTrays() {
             </table>
           )}
         </div>
-        {pagination && <div className="px-6 py-4 border-t">{/* Pagination */}</div>}
+        {pagination && <div className="px-6 py-4 border-t">{/* Pagination placeholder */}</div>}
       </div>
 
+      {/* ... existing modals ... */}
+      
       <Modal isOpen={!!selectedTray} onClose={() => setSelectedTray(null)} title={`Tray ${selectedTray?.trayNumber}`} size="lg">
         {detailLoading ? <div className="py-8 text-center text-gray-400">Loading...</div> : trayDetail && (
           <div className="space-y-4">
@@ -125,19 +160,30 @@ export default function ServiceTrays() {
 
       <Modal isOpen={!!qrModal} onClose={() => setQrModal(null)} title="Tray QR Code" size="sm">
         {qrModal && (
-          <div className="text-center space-y-4">
-            <p className="text-sm text-gray-600">Tray <strong>{qrModal.trayNumber}</strong></p>
-            <div className="flex justify-center p-4 bg-white border rounded-xl shadow-sm">
-              <img 
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${qrModal.qrCode}`} 
-                alt="QR Code" 
-                className="w-[180px] h-[180px]"
-              />
+          <div className="text-center space-y-5 py-2">
+            <div className="flex flex-col items-center">
+              <div className="bg-white p-3 rounded-2xl shadow-sm border mb-4">
+                <QRCodeCanvas 
+                  id="qr-modal-canvas"
+                  value={qrModal._id} 
+                  size={200} 
+                  level="H" 
+                  includeMargin={true} 
+                />
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-bold text-gray-900">Tray {qrModal.trayNumber}</div>
+                <div className="text-sm text-gray-500 uppercase tracking-widest">{qrModal.rackId?.rackNumber}</div>
+              </div>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3 font-mono text-[10px] break-all text-gray-500 border">
-              {qrModal.qrCode}
-            </div>
-            <p className="text-xs text-gray-400">Scan this code with the mobile app</p>
+            
+            <button 
+              onClick={() => downloadQR(qrModal)}
+              className="btn-primary w-full flex items-center justify-center gap-2 py-3"
+            >
+              <Download className="w-4 h-4" /> Download QR Label
+            </button>
+            <p className="text-[10px] text-gray-400">Scan this code with the mobile app for instant tray identification</p>
           </div>
         )}
       </Modal>

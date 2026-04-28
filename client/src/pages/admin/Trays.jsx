@@ -3,8 +3,7 @@ import Layout from '../../components/common/Layout';
 import { Modal, StatusBadge, LoadingOverlay, Pagination, EmptyState, ConfirmDialog } from '../../components/common';
 import { trayAPI, rackAPI } from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Pencil, Trash2, QrCode as QrIcon, Download } from 'lucide-react';
-import { QRCodeCanvas } from 'qrcode.react';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
 
 const INIT = { trayNumber: '', rackId: '', status: 'free', notes: '' };
 
@@ -60,63 +59,11 @@ export default function AdminTrays() {
     } finally { setDeleting(false); }
   };
 
-  const downloadQR = (t) => {
-    const canvas = document.getElementById(`qr-gen-${t._id}`);
-    if (!canvas) return;
-    
-    // Create a new high-quality canvas for the final labeled image
-    const finalCanvas = document.createElement('canvas');
-    const ctx = finalCanvas.getContext('2d');
-    finalCanvas.width = 300;
-    finalCanvas.height = 360; // Extra space for labels
-    
-    // Draw white background
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
-    
-    // Draw the QR code
-    ctx.drawImage(canvas, 25, 20, 250, 250);
-    
-    // Add Labels
-    ctx.fillStyle = '#000000';
-    ctx.textAlign = 'center';
-    ctx.font = 'bold 22px Inter, sans-serif';
-    ctx.fillText(`TRAY: ${t.trayNumber}`, 150, 300);
-    
-    ctx.font = '16px Inter, sans-serif';
-    ctx.fillStyle = '#666666';
-    ctx.fillText(`RACK: ${t.rackId?.rackNumber || 'N/A'}`, 150, 330);
-    
-    const pngUrl = finalCanvas.toDataURL("image/png");
-    const downloadLink = document.createElement("a");
-    downloadLink.href = pngUrl;
-    downloadLink.download = `QR_Tray_${t.trayNumber}.png`;
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-    toast.success(`Downloading QR for ${t.trayNumber}`);
-  };
-
   return (
     <Layout title="Trays">
       <div className="flex justify-end mb-4">
         <button onClick={openCreate} className="btn-primary flex items-center gap-2"><Plus className="w-4 h-4" /> Add Tray</button>
       </div>
-      
-      {/* Hidden QR Generators */}
-      <div className="hidden">
-        {trays.map(t => (
-          <QRCodeCanvas 
-            key={t._id} 
-            id={`qr-gen-${t._id}`} 
-            value={t._id} 
-            size={512} 
-            level="H" 
-            includeMargin={true} 
-          />
-        ))}
-      </div>
-
       <div className="card overflow-hidden p-0">
         <div className="overflow-x-auto">
           {loading ? <LoadingOverlay /> : trays.length === 0 ? <EmptyState /> : (
@@ -133,7 +80,6 @@ export default function AdminTrays() {
                     <td className="px-4 py-3"><StatusBadge status={t.status} /></td>
 
                     <td className="px-4 py-3 flex gap-2">
-                      <button onClick={() => downloadQR(t)} className="text-purple-600 p-1 hover:bg-purple-50 rounded" title="Download QR Code"><QrIcon className="w-4 h-4" /></button>
                       <button onClick={() => openEdit(t)} className="text-blue-600 p-1"><Pencil className="w-4 h-4" /></button>
                       <button onClick={() => setDeleteTarget(t)} className="text-red-500 p-1"><Trash2 className="w-4 h-4" /></button>
                     </td>
