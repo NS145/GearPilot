@@ -15,6 +15,7 @@ export default function AssignLaptopScreen({ navigation, route }) {
 
   useEffect(() => {
     const fetchEmployees = async () => {
+      if (!me) return;
       try {
         const params = { limit: 100 };
         // If we have a specific laptop, we can assign to anyone (direct fulfill/assign)
@@ -37,7 +38,7 @@ export default function AssignLaptopScreen({ navigation, route }) {
       }
     };
     fetchEmployees();
-  }, [laptop]);
+  }, [laptop, me]);
 
   const handleAssign = async () => {
     if (!selectedEmployee) {

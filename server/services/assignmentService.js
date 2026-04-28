@@ -46,7 +46,12 @@ const assignLaptopToEmployee = async ({ employeeId, laptopId, assignedBy, notes,
       // SMART ASSIGN LOGIC
       // Check for pending requests first
       const pending = await Assignment.findOne({ employeeId, status: 'requested' });
-      if (pending) throw new AppError('Employee already has a pending request. Please fulfill it via QR scan.', 400);
+      if (pending) {
+        if (user.role === 'service') {
+          return await fulfillAssignment({ employeeId, fulfilledBy: assignedBy, ip });
+        }
+        throw new AppError('Employee already has a pending request. Use the Service panel to fulfill it.', 400);
+      }
 
       // Priority 1: Most recently returned
       laptop = await Laptop.findOneAndUpdate(
