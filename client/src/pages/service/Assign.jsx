@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../../components/common/Layout';
-import { assignmentAPI, employeeAPI } from '../../api';
+import { assignmentAPI, employeeAPI, authAPI } from '../../api';
 import toast from 'react-hot-toast';
 import { Loader2, CheckCircle } from 'lucide-react';
 
@@ -11,7 +11,18 @@ export default function ServiceAssign() {
   const [result, setResult] = useState(null);
 
   useEffect(() => {
-    employeeAPI.getAll({ hasPendingRequest: 'true', limit: 100 }).then(({ data }) => setEmployees(data.data));
+    const load = async () => {
+      const { data: me } = await authAPI.getMe();
+      const params = { limit: 100 };
+      if (me.data.role === 'service') {
+        params.hasPendingRequest = 'true';
+      } else {
+        params.status = 'active';
+      }
+      const { data } = await employeeAPI.getAll(params);
+      setEmployees(data.data);
+    };
+    load();
   }, []);
 
   const handleSubmit = async (e) => {

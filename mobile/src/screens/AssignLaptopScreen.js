@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { assignmentAPI, employeeAPI } from '../api';
+import { assignmentAPI, employeeAPI, authAPI } from '../api';
 import Toast from 'react-native-toast-message';
 
 export default function AssignLaptopScreen({ navigation, route }) {
@@ -11,10 +11,23 @@ export default function AssignLaptopScreen({ navigation, route }) {
   const [result, setResult] = useState(null);
 
   useEffect(() => {
-    employeeAPI.getAll({ hasPendingRequest: 'true', limit: 100 }).then(({ data }) => {
-      setEmployees(data.data);
-      if (data.data.length) setSelectedEmployee(data.data[0]._id);
-    });
+    const fetchEmployees = async () => {
+      try {
+        const { data: me } = await authAPI.getMe();
+        const params = { limit: 100 };
+        if (me.data.role === 'service') {
+          params.hasPendingRequest = 'true';
+        } else {
+          params.status = 'active';
+        }
+        const { data: empData } = await employeeAPI.getAll(params);
+        setEmployees(empData.data);
+        if (empData.data.length) setSelectedEmployee(empData.data[0]._id);
+      } catch (err) {
+        Toast.show({ type: 'error', text1: 'Failed to load employees' });
+      }
+    };
+    fetchEmployees();
   }, []);
 
   const handleAssign = async () => {
