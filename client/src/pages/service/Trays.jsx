@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../../components/common/Layout';
 import { rackAPI, trayAPI } from '../../api';
 import { Spinner, StatusBadge, Modal } from '../../components/common';
-import { Server, Grid, Monitor, User, Info, ArrowRightCircle } from 'lucide-react';
+import { Server, Grid, Monitor, User, Info, ArrowRightCircle, QrCode as QrIcon, Download } from 'lucide-react';
+import QRCode from 'qrcode.react';
 import toast from 'react-hot-toast';
 
 export default function WarehouseVisualizer() {
