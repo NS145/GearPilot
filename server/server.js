@@ -52,6 +52,17 @@ app.use('/api/chatbot', require('./routes/chatbot'));
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
 
+// Emergency Seed Route (Delete after use!)
+app.get('/api/seed', async (req, res) => {
+  try {
+    const performSeed = require('./utils/seedLogic');
+    const result = await performSeed();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Error handler (must be last)
 app.use(errorHandler);
 
