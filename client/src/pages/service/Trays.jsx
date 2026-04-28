@@ -3,7 +3,7 @@ import Layout from '../../components/common/Layout';
 import { trayAPI } from '../../api';
 import { Spinner, StatusBadge, Modal } from '../../components/common';
 import { QrCode as QrIcon, Download, Search } from 'lucide-react';
-import QRCode from 'qrcode.react';
+import { QRCodeCanvas } from 'qrcode.react';
 import toast from 'react-hot-toast';
 
 export default function ServiceTrays() {
@@ -104,7 +104,7 @@ export default function ServiceTrays() {
         {showQR && (
           <div className="flex flex-col items-center gap-6 py-4">
             <div className="p-6 bg-white rounded-2xl shadow-xl border-2 border-gray-100">
-              <QRCode 
+              <QRCodeCanvas 
                 id="qr-gen"
                 value={showQR.qrCode} 
                 size={200} 
