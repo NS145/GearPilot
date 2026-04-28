@@ -148,6 +148,10 @@ const fulfillAssignment = async ({ laptopId, employeeId, fulfilledBy, ip }) => {
       { new: true }
     );
 
+    if (!laptop) {
+      throw new AppError('The laptop associated with this request could not be found in inventory.', 404);
+    }
+
     logActivity({
       userId: fulfilledBy,
       action: 'ASSIGNMENT_FULFILLED',

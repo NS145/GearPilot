@@ -36,7 +36,9 @@ export default function ServiceDashboard() {
       toast.success('Assignment Completed!');
       fetchData();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Fulfillment failed');
+      console.error('Fulfillment error:', err);
+      const msg = err.response?.data?.message || err.message || 'Fulfillment failed';
+      toast.error(msg);
     } finally { setProcessing(null); }
   };
 

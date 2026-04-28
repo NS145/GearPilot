@@ -56,7 +56,9 @@ export default function ServiceAssign() {
       const { data } = await employeeAPI.getAll({ limit: 100, hasPendingRequest: me.user?.role === 'service' ? 'true' : 'false' });
       setEmployees(data.data);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Action failed');
+      console.error('Assign Error:', err);
+      const msg = err.response?.data?.message || err.message || 'Action failed';
+      toast.error(msg);
     } finally { setSaving(false); }
   };
 
