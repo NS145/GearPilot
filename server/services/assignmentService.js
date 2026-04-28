@@ -126,10 +126,16 @@ const assignLaptopToEmployee = async ({ employeeId, laptopId, assignedBy, notes,
 /**
  * Fulfill an assignment — service tech scans QR and completes the task
  */
-const fulfillAssignment = async ({ laptopId, fulfilledBy, ip }) => {
+const fulfillAssignment = async ({ laptopId, employeeId, fulfilledBy, ip }) => {
   try {
-    const assignment = await Assignment.findOne({ laptopId, status: 'requested' });
-    if (!assignment) throw new AppError('No pending assignment request for this laptop', 404);
+    const filter = { status: 'requested' };
+    if (laptopId) filter.laptopId = laptopId;
+    if (employeeId) filter.employeeId = employeeId;
+
+    const assignment = await Assignment.findOne(filter);
+    if (!assignment) throw new AppError('No pending assignment request found', 404);
+
+    const targetLaptopId = laptopId || assignment.laptopId;
 
     // Update assignment to active
     assignment.status = 'active';
@@ -137,7 +143,7 @@ const fulfillAssignment = async ({ laptopId, fulfilledBy, ip }) => {
 
     // Update laptop status to assigned
     const laptop = await Laptop.findByIdAndUpdate(
-      laptopId,
+      targetLaptopId,
       { status: 'assigned' },
       { new: true }
     );

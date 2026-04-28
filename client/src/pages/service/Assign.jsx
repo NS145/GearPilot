@@ -31,10 +31,32 @@ export default function ServiceAssign() {
     setSaving(true);
     setResult(null);
     try {
-      const { data } = await assignmentAPI.assign(form);
-      toast.success('Laptop assigned!');
-      setResult(data);
+      const selectedEmp = employees.find(emp => emp._id === form.employeeId);
+      
+      let response;
+      if (selectedEmp?.hasPending) {
+        // If they have a pending request, we are FULFILLING it (The "Apply" logic)
+        // We need to find the laptopId from their pending assignment
+        // But the 'fulfill' endpoint in the backend can take laptopId or assignmentId
+        // To be safe, we'll fetch the pending assignment for this employee first or just use the laptop tied to them
+        // Simplified: The backend fulfill can handle this if we send the right data
+        response = await assignmentAPI.fulfill({ employeeId: form.employeeId });
+        toast.success('Request Applied & Laptop Assigned!');
+      } else {
+        // Otherwise, create a new smart assignment
+        response = await assignmentAPI.assign(form);
+        toast.success('Laptop assigned!');
+      }
+      
+      setResult(response.data);
       setForm({ employeeId: '', notes: '' });
+      
+      // Refresh employee list
+      const { data: me } = await authAPI.getMe();
+      const { data } = await employeeAPI.getAll({ limit: 100, hasPendingRequest: me.user?.role === 'service' ? 'true' : 'false' });
+      setEmployees(data.data);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Action failed');
     } finally { setSaving(false); }
   };
 

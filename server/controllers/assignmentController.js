@@ -25,6 +25,7 @@ exports.fulfill = async (req, res, next) => {
   try {
     const result = await fulfillAssignment({
       laptopId: req.body.laptopId,
+      employeeId: req.body.employeeId,
       fulfilledBy: req.user._id,
       ip: req.ip
     });
