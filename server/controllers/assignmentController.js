@@ -59,8 +59,17 @@ exports.getAssignments = async (req, res, next) => {
   try {
     const { page, limit, skip } = getPagination(req.query);
     const filter = {};
+    
+    // Privacy: Employees can only see their own assignments
+    if (req.user.role === 'employee') {
+      const Employee = require('../models/Employee');
+      const employee = await Employee.findOne({ email: req.user.email });
+      filter.employeeId = employee?._id || '000000000000000000000000'; // Non-existent ID if not found
+    } else {
+      if (req.query.employeeId) filter.employeeId = req.query.employeeId;
+    }
+
     if (req.query.status) filter.status = req.query.status;
-    if (req.query.employeeId) filter.employeeId = req.query.employeeId;
     if (req.query.laptopId) filter.laptopId = req.query.laptopId;
 
     const [assignments, total] = await Promise.all([

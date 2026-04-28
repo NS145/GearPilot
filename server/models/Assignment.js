@@ -13,6 +13,11 @@ const assignmentSchema = new mongoose.Schema({
 
 assignmentSchema.index({ laptopId: 1, status: 1 });
 assignmentSchema.index({ employeeId: 1, status: 1 });
+// PARTIAL UNIQUE INDEX: Prevents an employee from having multiple active/pending assignments
+assignmentSchema.index(
+  { employeeId: 1 }, 
+  { unique: true, partialFilterExpression: { status: { $in: ['active', 'requested'] } } }
+);
 assignmentSchema.index({ assignedDate: -1 });
 assignmentSchema.index({ status: 1 });
 

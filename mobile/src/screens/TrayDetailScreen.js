@@ -41,6 +41,23 @@ export default function TrayDetailScreen({ navigation, route }) {
     }
   };
 
+  const handleReturn = async () => {
+    try {
+      // Find the active assignment for this laptop
+      const { data: assignments } = await assignmentAPI.getAll({ laptopId: laptop._id, status: 'active', limit: 1 });
+      if (assignments.data.length === 0) throw new Error('Active assignment not found');
+      
+      await assignmentAPI.returnLaptop({ assignmentId: assignments.data[0]._id });
+      Toast.show({ type: 'success', text1: 'Laptop Returned!', text2: 'Status updated to Available.' });
+      
+      // Refresh tray data
+      const response = await trayAPI.get(currentTray._id);
+      setCurrentTray(response.data.data);
+    } catch (err) {
+      Toast.show({ type: 'error', text1: 'Return Failed', text2: err.response?.data?.message || err.message });
+    }
+  };
+
   return (
     <ScrollView style={styles.container}>
       {/* Tray Info */}
@@ -75,6 +92,14 @@ export default function TrayDetailScreen({ navigation, route }) {
                 onPress={handleFulfill}
               >
                 <Text style={styles.fulfillBtnText}>Complete Assignment</Text>
+              </TouchableOpacity>
+            )}
+            {laptop.status === 'assigned' && (
+              <TouchableOpacity
+                style={styles.returnBtn}
+                onPress={handleReturn}
+              >
+                <Text style={styles.primaryBtnText}>Return to Inventory</Text>
               </TouchableOpacity>
             )}
             {laptop.status === 'available' && (
@@ -128,6 +153,7 @@ const styles = StyleSheet.create({
   primaryBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
   fulfillBtn: { backgroundColor: '#10b981', borderRadius: 12, padding: 14, alignItems: 'center' },
   fulfillBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
+  returnBtn: { backgroundColor: '#f59e0b', borderRadius: 12, padding: 14, alignItems: 'center' },
   secondaryBtn: { backgroundColor: '#f1f5f9', borderRadius: 12, padding: 14, alignItems: 'center' },
   secondaryBtnText: { color: '#1e293b', fontWeight: '600', fontSize: 15 },
   emptyCard: { backgroundColor: '#fff', borderRadius: 16, padding: 24, alignItems: 'center', marginBottom: 14 },
