@@ -1,18 +1,49 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { assignmentAPI } from '../api';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function DashboardScreen({ navigation }) {
   const { user, logout } = useAuth();
-  const [assignments, setAssignments] = useState([]);
+  const [pending, setPending] = useState([]);
+  const [active, setActive] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [processingId, setProcessingId] = useState(null);
 
-  useEffect(() => {
-    assignmentAPI.getAll({ status: 'active', limit: 10 }).then(({ data }) => {
-      setAssignments(data.data);
-    }).finally(() => setLoading(false));
-  }, []);
+  const fetchData = async () => {
+    try {
+      const [resP, resA] = await Promise.all([
+        assignmentAPI.getAll({ status: 'requested', limit: 5 }),
+        assignmentAPI.getAll({ status: 'active', limit: 10 })
+      ]);
+      setPending(resP.data.data);
+      setActive(resA.data.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [])
+  );
+
+  const handleApply = async (assignment) => {
+    setProcessingId(assignment._id);
+    try {
+      await assignmentAPI.fulfill({ employeeId: assignment.employeeId?._id });
+      Alert.alert('Success', 'Assignment Applied & Completed!');
+      fetchData();
+    } catch (err) {
+      Alert.alert('Error', err.response?.data?.message || 'Fulfillment failed');
+    } finally {
+      setProcessingId(null);
+    }
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -35,19 +66,48 @@ export default function DashboardScreen({ navigation }) {
         <TouchableOpacity style={[styles.actionCard, { backgroundColor: '#7c3aed' }]} onPress={() => navigation.navigate('AssignLaptop')}>
           <Text style={styles.actionIcon}>🔗</Text>
           <Text style={styles.actionTitle}>Assign</Text>
-          <Text style={styles.actionSub}>Assign to employee</Text>
+          <Text style={styles.actionSub}>New request</Text>
         </TouchableOpacity>
       </View>
 
+      {/* PENDING SECTION */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Recent Active Assignments</Text>
-        {loading ? <ActivityIndicator color="#2563eb" style={{ marginTop: 20 }} /> : assignments.length === 0 ? (
+        <Text style={[styles.sectionTitle, { color: '#f59e0b' }]}>Pending Fulfillment ({pending.length})</Text>
+        {loading ? <ActivityIndicator color="#f59e0b" /> : pending.length === 0 ? (
+          <Text style={styles.empty}>No pending requests</Text>
+        ) : pending.map(a => (
+          <View key={a._id} style={[styles.assignCard, { borderLeftColor: '#f59e0b' }]}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.assignModel}>{a.laptopId?.model}</Text>
+                <Text style={styles.assignEmp}>{a.employeeId?.name}</Text>
+                <Text style={styles.statusLabel}>REQUESTED</Text>
+              </View>
+              <TouchableOpacity 
+                style={[styles.applyBtn, processingId === a._id && { opacity: 0.5 }]} 
+                onPress={() => handleApply(a)}
+                disabled={processingId === a._id}
+              >
+                <Text style={styles.applyBtnText}>{processingId === a._id ? '...' : 'Apply'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ))}
+      </View>
+
+      {/* ACTIVE SECTION */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Assigned Laptops</Text>
+        {loading ? <ActivityIndicator color="#2563eb" /> : active.length === 0 ? (
           <Text style={styles.empty}>No active assignments</Text>
-        ) : assignments.map(a => (
+        ) : active.map(a => (
           <View key={a._id} style={styles.assignCard}>
             <Text style={styles.assignModel}>{a.laptopId?.model}</Text>
             <Text style={styles.assignEmp}>{a.employeeId?.name} · {a.employeeId?.department}</Text>
-            <Text style={styles.assignSerial}>{a.laptopId?.serialNumber}</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+              <Text style={styles.assignSerial}>{a.laptopId?.serialNumber}</Text>
+              <Text style={[styles.statusLabel, { color: '#10b981' }]}>ASSIGNED</Text>
+            </View>
           </View>
         ))}
       </View>
@@ -67,11 +127,14 @@ const styles = StyleSheet.create({
   actionIcon: { fontSize: 32, marginBottom: 8 },
   actionTitle: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   actionSub: { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 2 },
-  section: { padding: 16 },
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#1e293b', marginBottom: 12 },
+  section: { padding: 16, paddingTop: 0 },
+  sectionTitle: { fontSize: 16, fontWeight: '800', color: '#1e293b', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 },
   empty: { color: '#94a3b8', textAlign: 'center', padding: 20 },
-  assignCard: { backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 10, borderLeftWidth: 3, borderLeftColor: '#2563eb', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
-  assignModel: { fontSize: 14, fontWeight: '600', color: '#1e293b' },
+  assignCard: { backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 10, borderLeftWidth: 4, borderLeftColor: '#10b981', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
+  assignModel: { fontSize: 14, fontWeight: '700', color: '#1e293b' },
   assignEmp: { fontSize: 12, color: '#64748b', marginTop: 2 },
-  assignSerial: { fontSize: 11, color: '#94a3b8', marginTop: 2, fontFamily: 'monospace' }
+  assignSerial: { fontSize: 11, color: '#94a3b8', marginTop: 2, fontFamily: 'monospace' },
+  applyBtn: { backgroundColor: '#f59e0b', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 },
+  applyBtnText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  statusLabel: { fontSize: 10, fontWeight: '800', color: '#f59e0b', marginTop: 4 }
 });

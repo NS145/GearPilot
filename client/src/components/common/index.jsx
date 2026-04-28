@@ -6,22 +6,25 @@ const PILL_MAP = {
   active:      'pill pill-green',
   available:   'pill pill-green',
   free:        'pill pill-green',
-  assigned:    'pill pill-blue',
-  occupied:    'pill pill-blue',
+  requested:   'pill pill-amber',
+  assigned:    'pill pill-green',
+  occupied:    'pill pill-green',
   maintenance: 'pill pill-amber',
-  returned:    'pill pill-slate',
+  returned:    'pill pill-red',
   exited:      'pill pill-red',
 };
 const DOT_MAP = {
   active:'dot-green', available:'dot-green', free:'dot-green',
-  assigned:'dot-blue', occupied:'dot-blue',
-  maintenance:'dot-amber', returned:'dot-slate', exited:'dot-red',
+  requested:'dot-amber',
+  assigned:'dot-green', occupied:'dot-green',
+  maintenance:'dot-amber', returned:'dot-red', exited:'dot-red',
 };
 export function StatusBadge({ status }) {
+  const label = status === 'active' ? 'ASSIGNED' : status;
   return (
-    <span className={PILL_MAP[status] || 'pill pill-slate'}>
+    <span className={PILL_MAP[status] || 'pill pill-slate'} style={{ textTransform: 'uppercase' }}>
       <span className={`status-dot ${DOT_MAP[status] || 'dot-slate'}`}/>
-      {status}
+      {label}
     </span>
   );
 }

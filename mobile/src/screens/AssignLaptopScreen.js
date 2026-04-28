@@ -46,14 +46,24 @@ export default function AssignLaptopScreen({ navigation, route }) {
     }
     setLoading(true);
     try {
-      const payload = { employeeId: selectedEmployee };
-      if (laptop) payload.laptopId = laptop._id;
+      const selectedEmp = employees.find(e => e._id === selectedEmployee);
+      let response;
+
+      if (selectedEmp?.hasPending) {
+        // APPLY existing request
+        response = await assignmentAPI.fulfill({ employeeId: selectedEmployee });
+        Toast.show({ type: 'success', text1: 'Applied & Completed!' });
+      } else {
+        // CREATE new assignment
+        const payload = { employeeId: selectedEmployee };
+        if (laptop) payload.laptopId = laptop._id;
+        response = await assignmentAPI.assign(payload);
+        Toast.show({ type: 'success', text1: 'Laptop assigned!' });
+      }
       
-      const { data } = await assignmentAPI.assign(payload);
-      setResult(data);
-      Toast.show({ type: 'success', text1: 'Laptop assigned!' });
+      setResult(response.data);
     } catch (err) {
-      Toast.show({ type: 'error', text1: err.response?.data?.message || 'Assignment failed' });
+      Toast.show({ type: 'error', text1: err.response?.data?.message || 'Action failed' });
     } finally {
       setLoading(false);
     }

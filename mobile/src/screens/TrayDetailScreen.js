@@ -4,16 +4,18 @@ import { trayAPI, assignmentAPI } from '../api';
 import Toast from 'react-native-toast-message';
 
 const StatusChip = ({ status }) => {
+  const displayLabel = status === 'assigned' ? 'ASSIGNED' : status === 'reserved' ? 'REQUESTED' : status;
   const colors = {
     free: { bg: '#dcfce7', text: '#166534' },
+    available: { bg: '#dcfce7', text: '#166534' },
+    assigned: { bg: '#dcfce7', text: '#166534' },
     occupied: { bg: '#dbeafe', text: '#1e40af' },
     maintenance: { bg: '#fef9c3', text: '#854d0e' },
-    available: { bg: '#dcfce7', text: '#166534' },
-    assigned: { bg: '#dbeafe', text: '#1e40af' },
-    reserved: { bg: '#fef9c3', text: '#854d0e' }
+    reserved: { bg: '#fef3c7', text: '#92400e' }, // Yellow
+    returned: { bg: '#fee2e2', text: '#991b1b' }  // Red
   };
   const c = colors[status] || { bg: '#f1f5f9', text: '#475569' };
-  return <Text style={[styles.chip, { backgroundColor: c.bg, color: c.text }]}>{status}</Text>;
+  return <Text style={[styles.chip, { backgroundColor: c.bg, color: c.text, textTransform: 'uppercase' }]}>{displayLabel}</Text>;
 };
 
 const InfoRow = ({ label, value }) => (
