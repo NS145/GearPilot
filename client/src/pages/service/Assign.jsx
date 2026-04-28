@@ -18,6 +18,7 @@ export default function ServiceAssign() {
         params.hasPendingRequest = 'true';
       } else {
         params.status = 'active';
+        params.availableOnly = 'true';
       }
       const { data } = await employeeAPI.getAll(params);
       setEmployees(data.data);

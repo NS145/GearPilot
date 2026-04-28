@@ -8,6 +8,7 @@ export default function AssignLaptopScreen({ navigation, route }) {
   const [employees, setEmployees] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
   const laptop = route.params?.laptop;
 
   useEffect(() => {
@@ -21,6 +22,7 @@ export default function AssignLaptopScreen({ navigation, route }) {
           params.hasPendingRequest = 'true';
         } else {
           params.status = 'active';
+          params.availableOnly = 'true';
         }
         const { data: empData } = await employeeAPI.getAll(params);
         setEmployees(empData.data);

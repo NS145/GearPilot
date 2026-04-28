@@ -41,6 +41,11 @@ exports.getAllEmployees = async (req, res, next) => {
       const pendingRequests = await Assignment.find({ status: 'requested' }).distinct('employeeId');
       filter._id = { $in: pendingRequests };
     }
+    if (req.query.availableOnly === 'true') {
+      const Assignment = require('../models/Assignment');
+      const occupied = await Assignment.find({ status: { $in: ['active', 'requested'] } }).distinct('employeeId');
+      filter._id = { $nin: occupied };
+    }
     if (req.query.department) filter.department = { $regex: req.query.department, $options: 'i' };
     if (req.query.search) {
       filter.$or = [

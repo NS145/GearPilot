@@ -33,7 +33,7 @@ export default function AdminAssignments() {
   useEffect(() => { fetchAssignments(); }, [fetchAssignments]);
 
   useEffect(() => {
-    employeeAPI.getAll({ status: 'active', limit: 100 }).then(({ data }) => setEmployees(data.data));
+    employeeAPI.getAll({ status: 'active', availableOnly: 'true', limit: 100 }).then(({ data }) => setEmployees(data.data));
   }, []);
 
   const handleAssign = async (e) => {
