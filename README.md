@@ -5,76 +5,96 @@
   <br>
   <p><i>A production-grade, full-stack ecosystem for enterprise hardware lifecycle management.</i></p>
 
-  [![Stack](https://img.shields.io/badge/Stack-Node.js%20%7C%20React%20%7C%20Expo-blueviolet?style=for-the-badge)](https://github.com/NS145/GearPilot)
-  [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+  [![Stack](https://img.shields.io/badge/Stack-MERN%20%7C%20Expo%20SDK%2054-blueviolet?style=for-the-badge)](https://github.com/NS145/GearPilot)
+  [![Deployment](https://img.shields.io/badge/Deployed-Vercel-black?style=for-the-badge)](https://gear-pilot.vercel.app)
   [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-orange.svg?style=for-the-badge)](http://makeapullrequest.com)
 </div>
 
 ---
 
+## 🏗️ Service Architecture
+
+```mermaid
+graph TD
+    subgraph Clients["User Interfaces (Clients)"]
+        WebAdmin["Admin Dashboard (React)"]
+        WebService["Service Dashboard (React)"]
+        MobileApp["Service Mobile App (Expo SDK 54)"]
+    end
+
+    subgraph Vercel["Vercel Cloud Platform"]
+        API["Express.js API (Serverless)"]
+        Logger["Winston (Vercel-Optimized)"]
+    end
+
+    subgraph Database["Data Persistence"]
+        MongoDB["MongoDB Atlas (Cloud)"]
+    end
+
+    subgraph External["Third-Party Services"]
+        QRAPI["QR Code Generator (api.qrserver.com)"]
+    end
+
+    WebAdmin -->|HTTPS| API
+    WebService -->|HTTPS| API
+    MobileApp -->|HTTPS| API
+    
+    API -->|Mongoose| MongoDB
+    API -->|Stdout| Logger
+    
+    WebAdmin -.->|GET| QRAPI
+    WebService -.->|GET| QRAPI
+    
+    MobileApp -->|Camera| QR["Physical QR Codes"]
+    QR -.->|Scanned By| MobileApp
+```
+
+---
+
 ## 📌 Overview
 
-**GearPilot** is an advanced MERN (MongoDB, Express, React, Node) application designed to automate the tracking and allocation of IT assets (primarily laptops) across large organizations. It bridges the gap between warehouse physical management and digital inventory records through real-time synchronization, QR integration, and an intelligent allocation engine.
+**GearPilot** is an advanced MERN application designed to automate IT asset tracking. It bridges the gap between physical warehouse management and digital inventory records through **QR integration** and an **asynchronous request-fulfillment workflow**.
 
-### Why GearPilot?
-- ⚡ **Efficiency**: Reduces asset allocation time by 70% through automated "Smart Assign" logic.
-- 🔍 **Transparency**: Full audit trail of every device's lifecycle.
-- 📱 **Mobility**: Mobile-first scanning for warehouse staff in the field.
+### 🔄 The GearPilot Workflow
+1.  **Request (Admin)**: The Admin selects an employee and requests a laptop. The system automatically reserves the best device based on rotation logic.
+2.  **Notification (Service)**: The request appears in the Service Tech's dashboard/app.
+3.  **Fulfillment (Mobile)**: The Service Tech locates the tray, scans the physical **QR Code**, and clicks **"Complete Assignment"** to hand off the device.
+4.  **Tracking**: The system logs the fulfillment and provides the employee with their credentials.
 
 ---
 
 ## ✨ Features
 
-- **📊 Intelligent Dashboard**: Real-time analytics on fleet health, status distribution, and rotation cycles.
-- **🛡️ Secure RBAC**: Role-Based Access Control ensuring only authorized personnel can modify critical inventory.
-- **🤖 Smart Allocation**: Proprietary algorithm (FIFO + Rotation-based) to ensure equal wear across the fleet.
-- **📸 QR Integration**: Instant lookup and status updates via mobile QR scanning.
-- **📅 Lifecycle Tracking**: Automated history of returns, maintenance, and assignments.
-- **📈 Advanced Filtering**: Search by model, serial number, rack position, or employee.
+- **📊 Intelligent Dashboard**: Real-time analytics on fleet health and rotation cycles.
+- **🛡️ Secure RBAC**: Strict role separation between Admins (Managers) and Service Techs (Field Ops).
+- **🤖 Smart Rotation**: Priority-based allocation (FIFO + Most recently returned) to ensure equal wear.
+- **📸 QR-First Ecosystem**: Instant lookup and status updates via mobile QR scanning (Expo SDK 54).
+- **☁️ Vercel Native**: Fully optimized for serverless deployment with customized cloud logging.
 
 ---
 
 ## 🛠 Tech Stack
 
 ### Server (Backend)
-- **Runtime**: Node.js & Express
-- **Database**: MongoDB (Mongoose ODM)
-- **Security**: JWT Authentication, Bcrypt hashing, Rate-limiting
+- **Runtime**: Node.js & Express (Vercel Serverless)
+- **Database**: MongoDB Atlas
+- **Security**: JWT Auth + RBAC Middleware
 - **Validation**: Joi Schema Validation
-- **Logging**: Winston Professional Logger
+- **Logging**: Winston (Optimized for read-only cloud filesystems)
 
 ### Client (Web Dashboard)
-- **Framework**: React.js 18 + Vite
-- **Styling**: Tailwind CSS + Glassmorphism Design
+- **Framework**: React 18 + Vite
+- **Styling**: Tailwind CSS + Glassmorphism
 - **Icons**: Lucide React
-- **State Management**: Context API
 
 ### Mobile (Scanner App)
-- **Framework**: React Native + Expo
-- **Hardware**: QR/Barcode camera integration
-- **Networking**: Axios with centralized API client
-
----
-
-## 📸 Visual Proof
-
-### Admin Dashboard
-![Dashboard](screenshots/dashboard.png)
-
-### Inventory Management
-![Inventory](screenshots/inventory.png)
-
-### Available Laptops
-![Mobile App](screenshots/mobile.png)
+- **Framework**: Expo SDK 54 + React Native
+- **Camera**: Modern `expo-camera` API (CameraView)
+- **State**: React Navigation 7 + Axios
 
 ---
 
 ## ⚙️ Setup & Installation
-
-### 📋 Prerequisites
-- **Node.js** (v18+)
-- **MongoDB** (Local or Atlas)
-- **Expo Go** app for mobile testing
 
 ### Step 1: Clone & Install
 ```bash
@@ -86,8 +106,6 @@ cd GearPilot
 ```bash
 cd server
 npm install
-cp .env.example .env  # Configure your MONGODB_URI and JWT_SECRET
-npm run seed           # (Optional) Seed database with demo data
 npm run dev
 ```
 
@@ -107,30 +125,10 @@ npx expo start
 
 ---
 
-## 📁 Project Structure
-
-```text
-GearPilot/
-├── 📂 client/          # Vite + React web dashboard
-├── 📂 server/          # Node.js + Express API
-├── 📂 mobile/          # Expo + React Native app
-├── 📂 docs/            # Technical documentation & API specs
-└── 📂 screenshots/     # Visual assets for branding
-```
-
----
-
 ## 🤝 Contributing
-
-We use **Conventional Commits** to keep the history clean:
-- `feat:` for new features
-- `fix:` for bug fixes
-- `docs:` for documentation changes
-- `ui:` for design/styling improvements
+We use **Conventional Commits** (`feat:`, `fix:`, `docs:`, `ui:`).
 
 ---
 
 ## 📄 License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-Built with ❤️ by [NS145](https://github.com/NS145)
+MIT License. Built with ❤️ by [NS145](https://github.com/NS145)

@@ -11,7 +11,7 @@ export default function ServiceAssign() {
   const [result, setResult] = useState(null);
 
   useEffect(() => {
-    employeeAPI.getAll({ status: 'active', limit: 100 }).then(({ data }) => setEmployees(data.data));
+    employeeAPI.getAll({ hasPendingRequest: 'true', limit: 100 }).then(({ data }) => setEmployees(data.data));
   }, []);
 
   const handleSubmit = async (e) => {
