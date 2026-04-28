@@ -1,4 +1,4 @@
-const { assignLaptopToEmployee, returnLaptop } = require('../services/assignmentService');
+const { assignLaptopToEmployee, fulfillAssignment, returnLaptop, cancelAssignmentRequest } = require('../services/assignmentService');
 const Assignment = require('../models/Assignment');
 const AppError = require('../utils/AppError');
 const { getPagination, paginateResponse } = require('../utils/pagination');
@@ -7,6 +7,7 @@ exports.assign = async (req, res, next) => {
   try {
     const result = await assignLaptopToEmployee({
       employeeId: req.body.employeeId,
+      laptopId: req.body.laptopId,
       assignedBy: req.user._id,
       notes: req.body.notes,
       ip: req.ip
