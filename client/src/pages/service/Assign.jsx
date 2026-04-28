@@ -14,7 +14,7 @@ export default function ServiceAssign() {
     const load = async () => {
       const { data: me } = await authAPI.getMe();
       const params = { limit: 100 };
-      if (me.data.role === 'service') {
+      if (me.user?.role === 'service') {
         params.hasPendingRequest = 'true';
       } else {
         params.status = 'active';
