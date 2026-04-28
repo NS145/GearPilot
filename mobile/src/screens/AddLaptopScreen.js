@@ -59,7 +59,9 @@ export default function AddLaptopScreen({ navigation, route }) {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.trayNote}>Tray: {tray.trayNumber} · Rack: {tray.rackId?.rackNumber}</Text>
+        <Text style={styles.trayNote}>
+          Tray: {tray?.trayNumber || '—'} · Rack: {tray?.rackId?.rackNumber || '—'}
+        </Text>
 
         <Field label="Model" value={form.model} onChange={set('model')} required />
         <Field label="Serial Number" value={form.serialNumber} onChange={set('serialNumber')} required />
