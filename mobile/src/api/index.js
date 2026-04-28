@@ -18,6 +18,7 @@ export const laptopAPI = {
 export const assignmentAPI = {
   getAll: (params) => api.get('/assignment', { params }),
   assign: (data) => api.post('/assignment/assign', data),
+  fulfill: (data) => api.post('/assignment/fulfill', data),
   return: (data) => api.post('/assignment/return', data)
 };
 

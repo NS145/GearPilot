@@ -7,7 +7,7 @@ const laptopSchema = new mongoose.Schema({
   serialNumber: { type: String, required: true, unique: true, trim: true },
   purchaseDate: { type: Date, required: true },
   vendor: { type: String, required: true, trim: true },
-  status: { type: String, enum: ['available', 'assigned', 'maintenance'], default: 'available' },
+  status: { type: String, enum: ['available', 'assigned', 'maintenance', 'reserved'], default: 'available' },
   trayId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tray', default: null },
   lastReturnedDate: { type: Date, default: null },
   notes: { type: String, trim: true },

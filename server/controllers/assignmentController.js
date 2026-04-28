@@ -14,9 +14,20 @@ exports.assign = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: `Laptop assigned using ${result.laptop.lastReturnedDate ? 'Priority 1 (most recently returned)' : 'Priority 2 (oldest purchase date)'}`,
+      message: 'Assignment request sent to service team',
       data: result
     });
+  } catch (err) { next(err); }
+};
+
+exports.fulfill = async (req, res, next) => {
+  try {
+    const result = await fulfillAssignment({
+      laptopId: req.body.laptopId,
+      fulfilledBy: req.user._id,
+      ip: req.ip
+    });
+    res.json({ success: true, message: 'Assignment fulfilled successfully', data: result });
   } catch (err) { next(err); }
 };
 

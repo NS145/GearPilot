@@ -3,7 +3,7 @@ import Layout from '../../components/common/Layout';
 import { Modal, StatusBadge, LoadingOverlay, Pagination, EmptyState, ConfirmDialog } from '../../components/common';
 import { trayAPI, rackAPI } from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Pencil, Trash2, QrCode } from 'lucide-react';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
 
 const INIT = { trayNumber: '', rackId: '', status: 'free', notes: '' };
 
@@ -19,7 +19,7 @@ export default function AdminTrays() {
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
-  const [qrModal, setQrModal] = useState(null);
+
 
   const fetchTrays = useCallback(async () => {
     setLoading(true);
@@ -69,7 +69,7 @@ export default function AdminTrays() {
           {loading ? <LoadingOverlay /> : trays.length === 0 ? <EmptyState /> : (
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
-                <tr>{['Tray #', 'Rack', 'Rack Status', 'Tray Status', 'QR Code', 'Actions'].map(h => <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide whitespace-nowrap">{h}</th>)}</tr>
+                <tr>{['Tray #', 'Rack', 'Rack Status', 'Tray Status', 'Actions'].map(h => <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide whitespace-nowrap">{h}</th>)}</tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {trays.map(t => (
@@ -78,11 +78,7 @@ export default function AdminTrays() {
                     <td className="px-4 py-3">{t.rackId?.rackNumber}</td>
                     <td className="px-4 py-3"><StatusBadge status={t.rackId?.status} /></td>
                     <td className="px-4 py-3"><StatusBadge status={t.status} /></td>
-                    <td className="px-4 py-3">
-                      <button onClick={() => setQrModal(t)} className="flex items-center gap-1 text-xs text-purple-600 hover:text-purple-800 font-mono">
-                        <QrCode className="w-3 h-3" /> {t.qrCode?.slice(0, 12)}...
-                      </button>
-                    </td>
+
                     <td className="px-4 py-3 flex gap-2">
                       <button onClick={() => openEdit(t)} className="text-blue-600 p-1"><Pencil className="w-4 h-4" /></button>
                       <button onClick={() => setDeleteTarget(t)} className="text-red-500 p-1"><Trash2 className="w-4 h-4" /></button>
@@ -126,24 +122,7 @@ export default function AdminTrays() {
         </form>
       </Modal>
 
-      <Modal isOpen={!!qrModal} onClose={() => setQrModal(null)} title="QR Code Details" size="sm">
-        {qrModal && (
-          <div className="text-center space-y-4">
-            <p className="text-sm text-gray-600">Tray <strong>{qrModal.trayNumber}</strong></p>
-            <div className="flex justify-center p-4 bg-white border rounded-xl shadow-sm">
-              <img 
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${qrModal.qrCode}`} 
-                alt="QR Code" 
-                className="w-[180px] h-[180px]"
-              />
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3 font-mono text-[10px] break-all text-gray-500 border">
-              {qrModal.qrCode}
-            </div>
-            <p className="text-xs text-gray-400">Scan this code with the mobile app</p>
-          </div>
-        )}
-      </Modal>
+
 
       <ConfirmDialog isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} loading={deleting} title="Delete Tray" message={`Delete tray "${deleteTarget?.trayNumber}"?`} />
     </Layout>

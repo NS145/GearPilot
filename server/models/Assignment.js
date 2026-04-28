@@ -8,7 +8,7 @@ const assignmentSchema = new mongoose.Schema({
   assignedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   returnedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   notes: { type: String, trim: true },
-  status: { type: String, enum: ['active', 'returned'], default: 'active' }
+  status: { type: String, enum: ['requested', 'active', 'returned'], default: 'requested' }
 }, { timestamps: true });
 
 assignmentSchema.index({ laptopId: 1, status: 1 });

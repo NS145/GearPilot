@@ -31,7 +31,7 @@ const assignLaptopToEmployee = async ({ employeeId, assignedBy, notes, ip }) => 
         status: 'available',
         lastReturnedDate: { $ne: null }
       },
-      { $set: { status: 'assigned' } },
+      { $set: { status: 'reserved' } }, // Reserved for assignment
       {
         sort: { lastReturnedDate: -1 }, // Most recent return first
         new: true
@@ -42,7 +42,7 @@ const assignLaptopToEmployee = async ({ employeeId, assignedBy, notes, ip }) => 
     if (!laptop) {
       laptop = await Laptop.findOneAndUpdate(
         { status: 'available' },
-        { $set: { status: 'assigned' } },
+        { $set: { status: 'reserved' } }, // Reserved for assignment
         {
           sort: { purchaseDate: 1 }, // Oldest first
           new: true
@@ -52,13 +52,13 @@ const assignLaptopToEmployee = async ({ employeeId, assignedBy, notes, ip }) => 
 
     if (!laptop) throw new AppError('No available laptops in the warehouse', 404);
 
-    // Create assignment record
+    // Create assignment record with 'requested' status
     const assignment = await Assignment.create({
       laptopId: laptop._id,
       employeeId: employee._id,
       assignedBy,
       notes,
-      status: 'active'
+      status: 'requested'
     });
 
     const User = require('../models/User'); // require here to avoid circular dep if any
@@ -81,7 +81,7 @@ const assignLaptopToEmployee = async ({ employeeId, assignedBy, notes, ip }) => 
     // Log activity (non-blocking)
     logActivity({
       userId: assignedBy,
-      action: 'ASSIGN_LAPTOP',
+      action: 'ASSIGNMENT_REQUESTED',
       entity: 'Assignment',
       entityId: assignment._id,
       details: {
@@ -90,7 +90,6 @@ const assignLaptopToEmployee = async ({ employeeId, assignedBy, notes, ip }) => 
         serialNumber: laptop.serialNumber,
         employeeId: employee._id,
         employeeName: employee.name,
-        priority: laptop.lastReturnedDate ? 'RETURNED_FIRST' : 'OLDEST_PURCHASE'
       },
       ip
     });
@@ -101,6 +100,40 @@ const assignLaptopToEmployee = async ({ employeeId, assignedBy, notes, ip }) => 
       employee,
       employeeCredentials
     };
+  } catch (err) {
+    throw err;
+  }
+};
+
+/**
+ * Fulfill an assignment — service tech scans QR and completes the task
+ */
+const fulfillAssignment = async ({ laptopId, fulfilledBy, ip }) => {
+  try {
+    const assignment = await Assignment.findOne({ laptopId, status: 'requested' });
+    if (!assignment) throw new AppError('No pending assignment request for this laptop', 404);
+
+    // Update assignment to active
+    assignment.status = 'active';
+    await assignment.save();
+
+    // Update laptop status to assigned
+    const laptop = await Laptop.findByIdAndUpdate(
+      laptopId,
+      { status: 'assigned' },
+      { new: true }
+    );
+
+    logActivity({
+      userId: fulfilledBy,
+      action: 'ASSIGNMENT_FULFILLED',
+      entity: 'Assignment',
+      entityId: assignment._id,
+      details: { laptopId: laptop._id, laptopModel: laptop.model },
+      ip
+    });
+
+    return { assignment, laptop };
   } catch (err) {
     throw err;
   }
@@ -145,4 +178,4 @@ const returnLaptop = async ({ assignmentId, returnedBy, notes, ip }) => {
   }
 };
 
-module.exports = { assignLaptopToEmployee, returnLaptop };
+module.exports = { assignLaptopToEmployee, fulfillAssignment, returnLaptop };
