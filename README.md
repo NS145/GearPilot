@@ -132,4 +132,4 @@ Built for CS students and IT managers alike. Pull requests are welcome!
 ---
 
 ## 📄 License
-MIT License. Created by [NS145](https://github.com/NS145).
+MIT License. Created by [NS145](https://github.com/NS145) [kuriant560](https://github.com/kuriant560) [SID0706NAIR](https://github.com/SID0706NAIR)
